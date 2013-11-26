@@ -1,0 +1,50 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{ucs}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{mathtools, amsfonts, amsmath}
+\usepackage[parfill]{parskip}
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}
+\fancyfoot[L]{}
+\fancyfoot[C]{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{13.6pt}
+
+\widowpenalty=1000
+\clubpenalty=1000
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}}
+
+\title{ 
+\normalfont \normalsize 
+\textsc{University of Copenhagen} \\ [25pt]
+\horrule{0.5pt} \\[0.4cm]
+\huge PCSD: Assignment 1 \\
+\horrule{2pt} \\[0.5cm]
+}
+
+\author{Jens Fredskov (chw752)\\Henrik Bendt (gwk553)} % Your name
+
+\date{\normalsize\today} % Today's date or a custom date
+
+\begin{document}
+\maketitle
+
+\section{Fundamental Abstractions} % (fold)
+\label{sec:fundamental_abstractions}
+
+We assume a global fixed block size (e.g. $4KB$), and that the Single Address Space is dynamically reserved (i.e. a non-fixed size).
+
+The Single Address Space is a mapping from index to a block on a machine. This means that each machine can have a variable number of blocks. If a machine joins it is simply appended to the list (meaning that we extend the Single Address Space with the number of blocks provided by the new machine). If a machine leaves abruptly, the pointers in the Single Address Space is simply pointing to a null, meaning that a timeout will occur when we try to read or write to the blocks mapped to that machine. If a machine announces its departure the memory blocks of the machine are transferred to other free blocks on other machines. This implies that each entry in the mapping also contains a flag (of 1 bit) determining whether the block is in use and also that there are enough free blocks to transfer the used blocks of the machine leaving. Furthermore the old entry must now point to the entry of the new block.
+
+We do not make any assumptions on the number of machines other than that the combined number of blocks must be less than or equal to the maximum size $N$ we can hold in the memory.
+% section fundamental_abstractions (end)
+
+\end{document}
