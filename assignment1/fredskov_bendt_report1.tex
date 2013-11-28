@@ -45,6 +45,26 @@ We assume a global fixed block size (e.g. $4KB$), and that the Single Address Sp
 The Single Address Space is a mapping from index to a block on a machine. This means that each machine can have a variable number of blocks. If a machine joins it is simply appended to the list (meaning that we extend the Single Address Space with the number of blocks provided by the new machine). If a machine leaves abruptly, the pointers in the Single Address Space is simply pointing to a null, meaning that a timeout will occur when we try to read or write to the blocks mapped to that machine. If a machine announces its departure the memory blocks of the machine are transferred to other free blocks on other machines. This implies that each entry in the mapping also contains a flag (of 1 bit) determining whether the block is in use and also that there are enough free blocks to transfer the used blocks of the machine leaving. Furthermore the old entry must now point to the entry of the new block.
 
 We do not make any assumptions on the number of machines other than that the combined number of blocks must be less than or equal to the maximum size $N$ we can hold in the memory.
+
+Comments to pseudo code:\\
+READ does a lookup on the address table and calls fetch on the block and machine, if the block is used, otherwise returns empty. Returns either the value, segfault or nil (in case of timeout).
+WRITE does a lookup on the address table and calls set on the block and machine and given value. If set is successful, upddate the lookup table with write flag set to 1. Else return error.
+Atomicity is ensured by having a two phased locking mechanism just above the READ and WRITE API, where the queue of requests are handled by some schedule. The WRITE API ensures atomicity by using TCP and timeout.
+
+%TODO: 3
+
 % section fundamental_abstractions (end)
+
+\section{Techniques for Performance} % (fold)
+\label{sec:techniques_for_performance}
+
+Lets take an example. When a single core processor runs multiple threads concurrently, each thread is swapped when waiting for memory (context switch). Here it reduces the latency for all threads. If however the overhead of swapping threads exceeds the time waiting for memory, the concurrency becomes a latency factor for the thread waiting for memory which is already retrieved. Thus it is not always a positive nor a negative factor but can be a tradeoff.
+
+Batching is used to group requests to avoid the individual overhead and instead get a maybe smaller group overhead. Could be used in an IO bottleneck, where there is an overhead for each message send and where requests can be combined into one message.%TODO is this right?
+Dallying is used to wait for a possible negation of the request, to remove the overhead of the first request. Can also be used to group requests into batches. Could be used in an IO bottleneck to eliminate writes to the same space, so only the latest is written.
+
+It is a fast path optimization because it tries to make a fast path to the most used data, reducing the average latency of accessing data.
+
+% section techniques_for_performance (end)
 
 \end{document}
