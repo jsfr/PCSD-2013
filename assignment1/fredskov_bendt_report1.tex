@@ -58,11 +58,49 @@ Atomicity is ensured by having a two phased locking mechanism just above the REA
 \begin{algorithmic}
 \Function{Read}{addr}
     \State $(F, M, B) \gets table[addr]$
-    \If{F} 
-        \State $(V) \gets$ \Call{fetch}{$M, B$}
+    \If{$F = 1$} 
+        \State $(V) \gets$ \Call{Fetch}{$M, B$}
         \State \Return $V$
     \Else
         \State \Return $empty$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\begin{algorithmic}
+\Function{Write}{addr, val}
+    \State $(F, B, M) \gets table[addr]$
+    \State \Call{Set}{$M, B, val$}
+    \State $table[addr] \gets (1, M, B)$
+\EndFunction
+\end{algorithmic}
+
+\begin{algorithmic}
+\Function{Fetch}{M, B}
+    \State \Call{Send}{$M, (``fetch'', B)$}
+    \State \Call{SetTimeout}{1000}
+    \State \Call{Receive}{$M, (res, val)$}
+    \If{timeout}
+        \State \Return $nil$
+    \ElsIf{$res = ``error''$}
+        \State segfault
+    \ElsIf{$res = ``ok''$}
+        \State \Return $val$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\begin{algorithmic}
+\Function{Set}{M, B, val}
+    \State \Call{Send}{$M, (``set'', B, val)$}
+    \State \Call{SetTimeout}{1000}
+    \State \Call{Receive}{M, res}
+    \If{timeout}
+        \State segfault
+    \ElsIf{$res = ``error''$}
+        \State segfault
+    \ElsIf{$res = ``ok''$}
+        \State \Return
     \EndIf
 \EndFunction
 \end{algorithmic}
