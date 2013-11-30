@@ -8,6 +8,8 @@
 \usepackage{mathtools, amsfonts, amsmath}
 \usepackage[parfill]{parskip}
 \usepackage{fancyhdr}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
 \pagestyle{fancyplain}
 \fancyhead{}
 \fancyfoot[L]{}
@@ -52,6 +54,18 @@ WRITE does a lookup on the address table and calls set on the block and machine 
 Atomicity is ensured by having a two phased locking mechanism just above the READ and WRITE API, where the queue of requests are handled by some schedule. The WRITE API ensures atomicity by using TCP and timeout.
 
 %TODO: 3
+
+\begin{algorithmic}
+\Function{Read}{addr}
+    \State $(F, M, B) \gets table[addr]$
+    \If{F} 
+        \State $(V) \gets$ \Call{fetch}{$M, B$}
+        \State \Return $V$
+    \Else
+        \State \Return $empty$
+    \EndIf
+\EndFunction
+\end{algorithmic}
 
 % section fundamental_abstractions (end)
 
