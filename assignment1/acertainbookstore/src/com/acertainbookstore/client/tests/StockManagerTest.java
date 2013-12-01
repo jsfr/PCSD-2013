@@ -374,8 +374,39 @@ public class StockManagerTest {
 
 	@Test
 	public void testGetBooksInDemand() {
-		Integer testISBN = 500;
+		// Test for no books in demand (empty)
+		List<StockBook> booksInDemand = null;
+		try {
+			booksInDemand = storeManager.getBooksInDemand();
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		assertTrue("There should be no books in demand", booksInDemand.isEmpty());
+		
+		// Test for no books in demand (server has one book)
+		Integer testISBN = 400;
 		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		booksToAdd.add(new ImmutableStockBook(testISBN, "Book Name",
+				"Book Author", (float) 100, 1, 0, 0, 0, false));
+		try {
+			storeManager.addBooks(booksToAdd);
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		booksInDemand = null;
+		try {
+			booksInDemand = storeManager.getBooksInDemand();
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		assertTrue("There should be no books in demand", booksInDemand.isEmpty());
+		
+		// Original test
+		testISBN = 500;
+		booksToAdd.clear();
 		booksToAdd.add(new ImmutableStockBook(testISBN, "Book Name",
 				"Book Author", (float) 100, 1, 0, 0, 0, false));
 		try {
@@ -402,7 +433,7 @@ public class StockManagerTest {
 		assertTrue("Trying to buy the book second time should throw exception",
 				notInStockExceptionThrown);
 
-		List<StockBook> booksInDemand = null;
+		booksInDemand = null;
 		try {
 			booksInDemand = storeManager.getBooksInDemand();
 		} catch (BookStoreException e) {
@@ -528,7 +559,7 @@ public class StockManagerTest {
 				break;
 			}
 		}
-		assertTrue("Set of testISBNs should be returned by getBooksInDemand",
+		assertTrue("Set of test ISBNs should be returned by getBooksInDemand",
 				listContainsTestISBN);
 	}
 
