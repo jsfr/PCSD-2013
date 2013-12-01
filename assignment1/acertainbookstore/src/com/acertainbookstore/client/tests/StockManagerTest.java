@@ -368,6 +368,8 @@ public class StockManagerTest {
 	 * 
 	 * 4. Now we execute storeManager.getBooksInDemand and check that testISBN
 	 * is returned in this call.
+	 * 
+	 * Added multiple other cases. Comments on top of each test case.
 	 */
 
 	@Test
@@ -416,6 +418,106 @@ public class StockManagerTest {
 		}
 		assertTrue("testISBN should be returned by getBooksInDemand",
 				listContainsTestISBN);
+		
+		//is still in demand and only one in demand
+		booksInDemand = null;
+		try {
+			booksInDemand = storeManager.getBooksInDemand();
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		listContainsTestISBN = false;
+		for (StockBook b : booksInDemand) {
+			if (b.getISBN() == testISBN) {
+				listContainsTestISBN = true;
+				break;
+			}
+		}
+		assertTrue("testISBN should be returned by getBooksInDemand",
+				listContainsTestISBN);
+		
+		assertEquals(booksInDemand.size(), 1);
+		
+		//is still in demand after added another book (not in demand)
+		Integer testISBN2 = 600;
+		booksToAdd.clear();
+		booksToAdd.add(new ImmutableStockBook(testISBN2, "Book Name",
+				"Book Author", (float) 100, 1, 0, 0, 0, false));
+		try {
+			storeManager.addBooks(booksToAdd);
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		
+		booksInDemand = null;
+		try {
+			booksInDemand = storeManager.getBooksInDemand();
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		listContainsTestISBN = false;
+		for (StockBook b : booksInDemand) {
+			if (b.getISBN() == testISBN) {
+				listContainsTestISBN = true;
+				break;
+			}
+		}
+		assertTrue("testISBN should be returned by getBooksInDemand",
+				listContainsTestISBN);
+		
+		assertEquals(booksInDemand.size(), 1);
+
+		// Multiple books are in demand
+		Set<Integer> booksToBeInDemand = new HashSet<Integer>();
+		booksToBeInDemand.add(testISBN);
+		
+		for(int i=0;i<10;i++) {
+			booksToBeInDemand.add(i);
+			booksToAdd.add(new ImmutableStockBook(i, "Book Name",
+					"Book Author", (float) 100, 1, 0, 0, 0, false));
+			try {
+				storeManager.addBooks(booksToAdd);
+			} catch (BookStoreException e) {
+				e.printStackTrace();
+				fail();
+			}
+
+			booksToBuy.add(new BookCopy(i, 1));
+		}
+		try {
+			client.buyBooks(booksToBuy);
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		notInStockExceptionThrown = false;
+		try {
+			client.buyBooks(booksToBuy);
+		} catch (BookStoreException e) {
+			notInStockExceptionThrown = true;
+		}
+		assertTrue("Trying to buy the book second time should throw exception",
+				notInStockExceptionThrown);
+		
+		listContainsTestISBN = false;
+		for (StockBook b : booksInDemand) {
+			for(Integer isbn : booksToBeInDemand){
+				if (b.getISBN() == isbn) {
+					listContainsTestISBN = true;
+					break;
+				}
+			}
+			if(!listContainsTestISBN){
+				break;
+			}
+			listContainsTestISBN = false;
+		}
+		assertTrue("testISBN should be returned by getBooksInDemand",
+				listContainsTestISBN);
+		
 	}
 
 	@AfterClass
