@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.acertainbookstore.server;
 
@@ -29,8 +29,8 @@ import com.acertainbookstore.utils.BookStoreUtility;
  * BookStoreHTTPMessageHandler implements the message handler class which is
  * invoked to handle messages received by the BookStoreHTTPServerUtility. It
  * decodes the HTTP message and invokes the CertainBookStore server API
- * 
- * 
+ *
+ *
  */
 public class BookStoreHTTPMessageHandler extends AbstractHandler {
 
@@ -199,6 +199,7 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 						.serializeObjectToXMLString(bookStoreresponse);
 				response.getWriter().println(listBooksxmlString);
 				break;
+
 			case TOPRATEDBOOKS:
 				numBooksString = URLDecoder
 					.decode(request
@@ -216,8 +217,22 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 				listBooksxmlString = BookStoreUtility
 						.serializeObjectToXMLString(bookStoreresponse);
 				response.getWriter().println(listBooksxmlString);
-				
+
 				break;
+
+			case GETBOOKSINDEMAND:
+				bookStoreresponse = new BookStoreResponse();
+				try {
+					bookStoreresponse.setList(CertainBookStore.getInstance()
+							.getBooksInDemand());
+				} catch (BookStoreException ex) {
+					bookStoreresponse.setException(ex);
+				}
+				listBooksxmlString = BookStoreUtility
+						.serializeObjectToXMLString(bookStoreresponse);
+				response.getWriter().println(listBooksxmlString);
+				break;
+
 			default:
 				System.out.println("Unhandled message tag");
 				break;
