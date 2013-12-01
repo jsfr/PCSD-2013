@@ -32,7 +32,7 @@
 \horrule{2pt} \\[0.5cm]
 }
 
-\author{Jens Fredskov (chw752)\\Henrik Bendt (gwk553)} % Your name
+\author{Jens Fredskov (chw752)\\Henrik Bendt (gwk553)\\Ronni Lindsgaard (??????)} % Your name
 
 \date{\normalsize\today} % Today's date or a custom date
 
@@ -48,12 +48,7 @@ The Single Address Space is a mapping from index to a block on a machine. This m
 
 We do not make any assumptions on the number of machines other than that the combined number of blocks must be less than or equal to the maximum size $N$ we can hold in the memory.
 
-Comments to pseudo code:\\
-READ does a lookup on the address table and calls fetch on the block and machine, if the block is used, otherwise returns empty. Returns either the value, segfault or nil (in case of timeout).
-WRITE does a lookup on the address table and calls set on the block and machine and given value. If set is successful, upddate the lookup table with write flag set to 1. Else return error.
-Atomicity is ensured by having a two phased locking mechanism just above the READ and WRITE API, where the queue of requests are handled by some schedule. The WRITE API ensures atomicity by using TCP and timeout.
-
-%TODO: 3
+The pseudocode for the API looks as follows:
 
 \begin{algorithmic}
 \Function{Read}{addr}
@@ -105,18 +100,39 @@ Atomicity is ensured by having a two phased locking mechanism just above the REA
 \EndFunction
 \end{algorithmic}
 
+READ does a lookup on the address table and calls fetch on the block and machine, if the block is used, otherwise returns empty. Returns either the value, segfault or nil (in case of timeout).
+WRITE does a lookup on the address table and calls set on the block and machine and given value. If set is successful, upddate the lookup table with write flag set to 1. Else return error.
+Atomicity is ensured by having a two phased locking mechanism just above the READ and WRITE API, where the queue of requests are handled by some schedule. The WRITE API ensures atomicity by using TCP and timeout.
+
+%TODO: 3+(4)
+
 % section fundamental_abstractions (end)
 
 \section{Techniques for Performance} % (fold)
 \label{sec:techniques_for_performance}
 
-Lets take an example. When a single core processor runs multiple threads concurrently, each thread is swapped when waiting for memory (context switch). Here it reduces the latency for all threads. If however the overhead of swapping threads exceeds the time waiting for memory, the concurrency becomes a latency factor for the thread waiting for memory which is already retrieved. Thus it is not always a positive nor a negative factor but can be a tradeoff.
+An example using concurrency could be as follows: When a single core processor runs multiple threads concurrently, each thread is swapped when waiting for memory (context switch). Here it reduces the latency for all threads, as other threads can do their computations while the previous are waiting for I/O. If however the overhead of swapping threads exceeds the time waiting for memory, the concurrency becomes a latency factor for the thread waiting for memory which is already retrieved. Thus it is not always a positive nor a negative factor but can be a tradeoff.
 
-Batching is used to group requests to avoid the individual overhead and instead get a maybe smaller group overhead. Could be used in an IO bottleneck, where there is an overhead for each message send and where requests can be combined into one message.%TODO is this right?
-Dallying is used to wait for a possible negation of the request, to remove the overhead of the first request. Can also be used to group requests into batches. Could be used in an IO bottleneck to eliminate writes to the same space, so only the latest is written.
+Batching is used to group requests to avoid the individual overhead and instead get a maybe smaller group overhead. Batching could be used in an I/O bottleneck, where there is an overhead for each message send and where requests can be combined into one message.
 
-It is a fast path optimization because it tries to make a fast path to the most used data, reducing the average latency of accessing data.
+Dallying is used to hold back requests in the hope that a later request cancels out the first one, thus removing having to do the first request at all. It can also be used to hold back specific requests in the hope of creating a batch. Dallying could be used in an I/O bottleneck to eliminate writes to the same space, so only the latest is written.
+
+Caching is a fast path optimization because it tries to make a fast path to the most used data, reducing the average latency of accessing data.
 
 % section techniques_for_performance (end)
+
+\section{Questions for Duscussion on Architecture} % (fold)
+\label{sec:questions_for_duscussion_on_architecture}
+
+\begin{enumerate}
+    \item 
+    \item
+    \item
+    \item
+    \item
+    \item
+\end{enumerate}
+
+% section questions_for_duscussion_on_architecture (end)
 
 \end{document}
