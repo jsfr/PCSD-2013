@@ -470,23 +470,26 @@ public class StockManagerTest {
 		
 		assertEquals(booksInDemand.size(), 1);
 
+		
+		
 		// Multiple books are in demand
 		Set<Integer> booksToBeInDemand = new HashSet<Integer>();
-		booksToBeInDemand.add(testISBN);
-		
-		for(int i=0;i<10;i++) {
+		booksToBuy.clear();
+		booksToAdd.clear();
+		for(int i=1;i<10;i++) {
 			booksToBeInDemand.add(i);
 			booksToAdd.add(new ImmutableStockBook(i, "Book Name",
 					"Book Author", (float) 100, 1, 0, 0, 0, false));
-			try {
-				storeManager.addBooks(booksToAdd);
-			} catch (BookStoreException e) {
-				e.printStackTrace();
-				fail();
-			}
-
+			
 			booksToBuy.add(new BookCopy(i, 1));
 		}
+		try {
+			storeManager.addBooks(booksToAdd);
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		
 		try {
 			client.buyBooks(booksToBuy);
 		} catch (BookStoreException e) {
@@ -502,8 +505,19 @@ public class StockManagerTest {
 		assertTrue("Trying to buy the book second time should throw exception",
 				notInStockExceptionThrown);
 		
+		booksToBeInDemand.add(testISBN);
 		listContainsTestISBN = false;
+		
+		booksInDemand = null;
+		try {
+			booksInDemand = storeManager.getBooksInDemand();
+		} catch (BookStoreException e) {
+			e.printStackTrace();
+			fail();
+		}
+		
 		for (StockBook b : booksInDemand) {
+			listContainsTestISBN = false;
 			for(Integer isbn : booksToBeInDemand){
 				if (b.getISBN() == isbn) {
 					listContainsTestISBN = true;
@@ -513,11 +527,9 @@ public class StockManagerTest {
 			if(!listContainsTestISBN){
 				break;
 			}
-			listContainsTestISBN = false;
 		}
-		assertTrue("testISBN should be returned by getBooksInDemand",
+		assertTrue("Set of testISBNs should be returned by getBooksInDemand",
 				listContainsTestISBN);
-		
 	}
 
 	@AfterClass
