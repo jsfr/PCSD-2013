@@ -17,7 +17,7 @@ import com.acertainbookstore.utils.BookStoreConstants;
 import com.acertainbookstore.utils.BookStoreException;
 import com.acertainbookstore.utils.BookStoreUtility;
 
-public class ConcurrentCertainBookStore implements BookStore, StockManager{
+public class ConcurrentCertainBookStore implements BookStore, StockManager {
 	private static ConcurrentCertainBookStore singleInstance;
 	private static Map<Integer, BookStoreBook> bookMap;
 	
