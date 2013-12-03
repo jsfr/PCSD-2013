@@ -1,0 +1,3 @@
+T1: RL(X)  R(X)              WL(Y) W(Y) C
+T2:                    RL(Z)  R(Z)        WL(X) W(X) WL(Y) W(Y) C
+T3:       WL(Z) W(Z) C
