@@ -30,5 +30,8 @@ public final class BookStoreConstants {
 	public static final String NUM_COPIES = "The Number of copies: ";
 	public static final String RATING = "The rating: ";
 	public static final String NULL_INPUT = "null input parameters";
+	
+	//Used for abortions due to deadlocking
+	public static final String ABORT = "Aborted the current operation";
 
 }
