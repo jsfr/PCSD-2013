@@ -1,4 +1,4 @@
-package Lock;
+package com.acertainbookstore.lock;
 
 public class Timestamp {
     private static Long timestamp;

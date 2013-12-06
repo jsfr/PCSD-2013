@@ -1,11 +1,9 @@
-package Lock;
+package com.acertainbookstore.lock;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
-
-import com.acertainbookstore.utils.BookStoreException;
 
 public class AmazingLock implements Lock {
 	private enum State {
@@ -15,14 +13,14 @@ public class AmazingLock implements Lock {
 	private Queue<Tuple> queue;
 	Long lastTimestamp;
 	int numberOfUsers;
-	
+
 	public AmazingLock() {
 		lock = State.FREE;
 		queue = new LinkedList<Tuple>();
 		numberOfUsers = 0;
 		lastTimestamp = 0L;
 	}
-	
+
 	@Override
 	public synchronized void get(LockType lt, Timestamp timestamp) throws LockException {
 		State newLock = getLockType(lt);
@@ -43,7 +41,7 @@ public class AmazingLock implements Lock {
 		numberOfUsers++;
 		return;
 	}
-	
+
 	@Override
 	public synchronized void release() {
 		numberOfUsers--; //Decrease the number of users.
@@ -55,7 +53,7 @@ public class AmazingLock implements Lock {
 			} while(!queue.isEmpty() && queue.peek().left() == State.READ);
 		}
 	}
-	
+
 /*
 	@Override
 	public synchronized boolean tryGet(LockType lt){
@@ -67,14 +65,14 @@ public class AmazingLock implements Lock {
 		return false;
 	}
 */
-	
+
 	/*
 	 * Get all locks of the set. If not possible to get all immediately,
 	 * release all locks and wait for the taken lock to be free. Then try again.
 	 * @see com.acertainbookstore.business.Lock#getAllLocks(java.util.Set)
 	 */
 	@Override
-	public void getAllLocks(Set<Tuple<Lock,LockType>> locks, Timestamp timestamp) 
+	public void getAllLocks(Set<Tuple<Lock,LockType>> locks, Timestamp timestamp)
 	        throws LockException {
 		Set<Lock> takenLocks = new HashSet<Lock>();
 		try{
@@ -94,7 +92,7 @@ public class AmazingLock implements Lock {
 	 * Join the queue, then wait.
 	 * Return to get()-method when awaken (through notify), to take the lock.
 	 */
-	private synchronized void joinQueue(State s, Timestamp timestamp) 
+	private synchronized void joinQueue(State s, Timestamp timestamp)
 	        throws LockException{
 		if(lastTimestamp < timestamp.get()){
 		    queue.add(new Tuple(s, this));
@@ -118,13 +116,13 @@ public class AmazingLock implements Lock {
 			default:	return State.FREE; //Should never happen.
 		}
 	}
-	
+
 	private void releaseLocks(Set<Lock> locks){
 		for(Lock l : locks){
 			l.release();
 		}
 	}
-	
+
 	/*
 	 * Triple class for the queue.
 	 */
@@ -147,6 +145,6 @@ public class AmazingLock implements Lock {
 	  public Z right(){
           return z;
       }
-	} 
+	}
 */
 }

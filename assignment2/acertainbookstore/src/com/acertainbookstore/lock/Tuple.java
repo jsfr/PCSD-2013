@@ -1,4 +1,4 @@
-package Lock;
+package com.acertainbookstore.lock;
 /*
  * Tuple class used by the Lock interface and for queues.
  * As found on http://stackoverflow.com/questions/2670982/using-tuples-in-java

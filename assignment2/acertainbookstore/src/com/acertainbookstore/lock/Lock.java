@@ -1,4 +1,4 @@
-package Lock;
+package com.acertainbookstore.lock;
 
 import java.util.Set;
 
