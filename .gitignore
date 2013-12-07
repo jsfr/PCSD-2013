@@ -3,3 +3,7 @@
 *.log
 *.toc
 fredskov_bendt_lindsgaard_*.pdf
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+.metadata/
