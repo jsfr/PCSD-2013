@@ -89,6 +89,12 @@ public class ConcurrentCertainBookStoreTest {
 				"Author Name", (float) 100, numCpies, 0, 0, 0, false);
 		//Add the books to work on.
 		booksToAdd.add(book);
+		try {
+            storeManager.addBooks(booksToAdd);
+        } catch (BookStoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 		// BookStore thread
 		class C1 implements Runnable{
 			Set<BookCopy> booksToBuy = new HashSet<BookCopy>();
@@ -138,7 +144,7 @@ public class ConcurrentCertainBookStoreTest {
 		
 		Assertion a = new Assertion();
 		Runnable[] ts = {new C1(), new C2()};
-		threadTest(ts, a, 100);
+		threadTest(ts, a, 1);
 	}
 	
 	/*
@@ -235,7 +241,7 @@ public class ConcurrentCertainBookStoreTest {
 		C1 c1 = new C1();
 		C2 c2 = new C2(c1);
 		Runnable[] ts = {c1, c2};
-		threadTest(ts, a, 100);
+		threadTest(ts, a, 1);
 	}
 	
 	
