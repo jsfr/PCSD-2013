@@ -167,6 +167,12 @@ public class ConcurrentCertainBookStoreTest {
 		booksToAdd.add(book1);
 		booksToAdd.add(book2);
 		booksToAdd.add(book3);
+		try {
+            storeManager.addBooks(booksToAdd);
+        } catch (BookStoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 		// C1 thread. Buys a specific set of books and then replenish it.
 		class C1 implements Runnable{
 			Set<BookCopy> booksToBuy = new HashSet<BookCopy>();
