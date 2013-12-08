@@ -7,8 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.acertainbookstore.business.BookCopy;
@@ -26,8 +26,8 @@ public class ConcurrentCertainBookStoreTest {
 	private static StockManager storeManager;
 	private static BookStore client;
 
-	@BeforeClass
-	public static void setUpBeforeClass() {
+	@Before
+	public void setUp() {
 		try {
 			if (localTest) {
 				storeManager = ConcurrentCertainBookStore.getInstance();
@@ -41,6 +41,15 @@ public class ConcurrentCertainBookStoreTest {
 			e.printStackTrace();
 		}
 	}
+	
+	@After
+    public void tearDown() {
+        if (!localTest) {
+            ((BookStoreHTTPProxy) client).stop();
+            ((StockManagerHTTPProxy) storeManager).stop();
+        }
+    }
+
 	
 	/*
 	 * Interface for the assertions given to threadTest.
@@ -144,7 +153,7 @@ public class ConcurrentCertainBookStoreTest {
 		
 		Assertion a = new Assertion();
 		Runnable[] ts = {new C1(), new C2()};
-		threadTest(ts, a, 1);
+		threadTest(ts, a, 100);
 	}
 	
 	/*
@@ -167,6 +176,12 @@ public class ConcurrentCertainBookStoreTest {
 		booksToAdd.add(book1);
 		booksToAdd.add(book2);
 		booksToAdd.add(book3);
+		try {
+            storeManager.addBooks(booksToAdd);
+        } catch (BookStoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 		// C1 thread. Buys a specific set of books and then replenish it.
 		class C1 implements Runnable{
 			Set<BookCopy> booksToBuy = new HashSet<BookCopy>();
@@ -219,7 +234,9 @@ public class ConcurrentCertainBookStoreTest {
 							currNumCpies = tmpNumCpies;
 						}
 						for(StockBook b : booksInStore){
-							assertTrue(b.getNumCopies() == currNumCpies);
+						    if (b.getISBN() == 200 || b.getISBN() == 201 || b.getISBN() == 202) { 
+						        assertTrue(b.getNumCopies() == currNumCpies);
+						    }
 						}
 					}
 				} catch (BookStoreException e) {
@@ -241,18 +258,8 @@ public class ConcurrentCertainBookStoreTest {
 		C1 c1 = new C1();
 		C2 c2 = new C2(c1);
 		Runnable[] ts = {c1, c2};
-		threadTest(ts, a, 1);
+		threadTest(ts, a, 100);
 	}
-	
-	
-	@AfterClass
-	public static void tearDownAfterClass() {
-		if (!localTest) {
-			((BookStoreHTTPProxy) client).stop();
-			((StockManagerHTTPProxy) storeManager).stop();
-		}
-	}
-
 }
 
 

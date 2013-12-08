@@ -45,9 +45,14 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		return singleInstance;
 	}
 	
-	private void releaseLocks(List<Tuple<MultiGranularityLock, LockType>> locks) {
-		for(Tuple<MultiGranularityLock, LockType> t : locks) {
-			t.left().release(t.right());
+	private void releaseLocks(Stack<Tuple<MultiGranularityLock, LockType>> locks) {
+		System.out.println("before while");
+	    while(!locks.empty()) {
+		    Tuple<MultiGranularityLock, LockType> t = locks.pop();
+		    System.out.println("in while");
+		    MultiGranularityLock lock = t.left();
+		    LockType lt = t.right();
+		    lock.release(lt);
 		}
 	}
 
@@ -55,6 +60,7 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			throws BookStoreException {
 		
 		bookMapLock.getExclusive(); //KISS
+		System.out.println("addBooks bookMap X take");
 		
 		if (bookSet == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
@@ -83,7 +89,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			}
 			
 		}
-
 		
 		for (StockBook book : bookSet) {
 			int ISBN = book.getISBN();
@@ -95,16 +100,18 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		}
 		
 		bookMapLock.release(LockType.X);
+		System.out.println("addBooks bookMap X release");
 		return;
 	}
 
 	public void addCopies(Set<BookCopy> bookCopiesSet)
 			throws BookStoreException {
 		int ISBN, numCopies;
-		List<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
+		Stack<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
 		
 		bookMapLock.intendExclusive();
-		locks.add(new Tuple<>(bookMapLock, LockType.IX));
+		System.out.println("addCopies bookMap IX take");
+		locks.push(new Tuple<>(bookMapLock, LockType.IX));
 		
 		if (bookCopiesSet == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
@@ -131,7 +138,8 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			
 			MultiGranularityLock lock = bookMapLocks.get(ISBN);
 			lock.getExclusive();
-			locks.add(new Tuple<>(lock, LockType.X));
+			System.out.println("addCopies bookMaps " + Integer.toString(ISBN) + " take");
+			locks.push(new Tuple<>(lock, LockType.X));
 		}
 
 		BookStoreBook book;
@@ -143,7 +151,9 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			book.addCopies(numCopies);
 		}
 		
+		System.out.println("addCopies before releaseLocks");
 		releaseLocks(locks);
+		System.out.println("addCopies booksMaps releaseLocks");
 	}
 
 	public List<StockBook> getBooks() {
@@ -162,7 +172,7 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 	public void updateEditorPicks(Set<BookEditorPick> editorPicks)
 			throws BookStoreException {
 		
-	    List<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
+	    Stack<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
 		
 		// Check that all ISBNs that we add/remove are there first.
 		if (editorPicks == null) {
@@ -170,7 +180,7 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		}
 
 		bookMapLock.intendExclusive();
-		locks.add(new Tuple<>(bookMapLock, LockType.IX));
+		locks.push(new Tuple<>(bookMapLock, LockType.IX));
 		
 		int ISBNVal;
 
@@ -189,7 +199,7 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			
 			MultiGranularityLock lock = bookMapLocks.get(ISBNVal);
 			lock.getExclusive();
-			locks.add(new Tuple<>(lock, LockType.X));
+			locks.push(new Tuple<>(lock, LockType.X));
 		}
 
 		for (BookEditorPick editorPickArg : editorPicks) {
@@ -204,14 +214,15 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 	public void buyBooks(Set<BookCopy> bookCopiesToBuy)
 			throws BookStoreException {
 		
-	    List<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
+	    Stack<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
 		
 		if (bookCopiesToBuy == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
 		
 		bookMapLock.intendExclusive();
-		locks.add(new Tuple<>(bookMapLock, LockType.IX));
+		System.out.println("buyBooks bookMap IX");
+		locks.push(new Tuple<>(bookMapLock, LockType.IX));
 		
 		// Check that all ISBNs that we buy are there first.
 		int ISBN;
@@ -238,7 +249,8 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 
 			MultiGranularityLock lock = bookMapLocks.get(ISBN);
 			lock.getExclusive();
-			locks.add(new Tuple<>(lock, LockType.X));
+			System.out.println("buyBooks bookMaps" + Integer.toString(ISBN) + " X take");
+			locks.push(new Tuple<>(lock, LockType.X));
 		}
 
 		// We throw exception now since we want to see how many books in the
@@ -256,6 +268,7 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		}
 		
 		releaseLocks(locks);
+		System.out.println("buyBooks releaseLocks");
 		return;
 	}
 
@@ -265,10 +278,10 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
 		
-		List<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
+		Stack<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
 
 		bookMapLock.intendShared();
-		locks.add(new Tuple<>(bookMapLock, LockType.IS));
+		locks.push(new Tuple<>(bookMapLock, LockType.IS));
 		
 		// Check that all ISBNs that we rate are there first.
 		for (Integer ISBN : isbnSet) {
@@ -285,7 +298,7 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 
 			MultiGranularityLock lock = bookMapLocks.get(ISBN);
 			lock.getShared();
-			locks.add(new Tuple<>(lock, LockType.S));
+			locks.push(new Tuple<>(lock, LockType.S));
 		}
 
 		List<Book> listBooks = new ArrayList<Book>();
