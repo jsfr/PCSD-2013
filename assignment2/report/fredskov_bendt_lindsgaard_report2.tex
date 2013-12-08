@@ -94,6 +94,7 @@ Here test 2 applies both between T1/T3 and T2/T3. As both tests pass T3 is allow
 
 % section optimistic_concurrency_control (end)
 
+\pagebreak
 \section{Questions for Discussion on the Concurrent Implementation of Bookstore} % (fold)
 \label{sec:questions_for_discussion_on_the_concurrent_implementation_of_bookstore}
 
@@ -102,6 +103,8 @@ Here test 2 applies both between T1/T3 and T2/T3. As both tests pass T3 is allow
 
 The locking protocol should be correct. Our reasons for believing this are as follows: First of all of our tests pass, which (depending of the tests) is an indicator of correctness.
 
+Regarding predicate reads these could occur with respect to ISBN or editor pick. When we get editor picks we get a shared lock on the entire map, meaning that these are protected. As we have no function to get a single ISBN we always get the entire map and therefore also a shared lock.
+
 More importantly the scheme implemented follows a strict 2PL multi granularity lock. We acquire locks when they are needed, and then let go of all of them at the same time in the end of each function. As the protocol is multi granular it includes both exclusive (write), shared (read), intention exclusive (write further down the hierarchy) and intention shared (read further down the hierarchy) locks.
 
 % paragraph 1_ (end)
@@ -109,7 +112,7 @@ More importantly the scheme implemented follows a strict 2PL multi granularity l
 \paragraph{2.} % (fold)
 \label{par:2_}
 
-The protocol can currently lead to deadlocks, when we try to take locks on individual books (not if we do take read or write locks on the entire map). An example is when to threads try to update two books, where they might try to take the locks of the books in different order and therefore end up in a deadlock.
+The protocol can currently lead to deadlocks, when we try to take locks on individual books (not if we do take read or write locks on the entire map). An example is when two threads try to update two books, where they might try to take the locks of the books in different order and therefore end up in a deadlock.
 
 There are different ways in which we could have gotten around this. A solution could be to sort the books on their ISBN and take the locks in this order, effectively avoiding dead locks. This way of ordering the locks while avoiding dead locks could however lead to a slow down in performance when we need to sort a large number of books before acquiring the locks.
 
@@ -139,7 +142,7 @@ The degree of concurrency we get should greatly exceed the overhead being paid i
 \paragraph{test3} % (fold)
 \label{par:test3}
 
-The test tests atomicity. This works by running two threads which concurrently updates copies, and then finally checks whether the final number matches the sum of the two updates plus the original number. The two threads first add books, we then check whether the new number of books match the expected and buys back the same number of books.
+Tests atomicity. This works by running two threads which concurrently updates copies, and then finally checks whether the final number matches the sum of the two updates plus the original number. The two threads first add books, we then check whether the new number of books match the expected and buys back the same number of books.
 
 % paragraph test3 (end)
 

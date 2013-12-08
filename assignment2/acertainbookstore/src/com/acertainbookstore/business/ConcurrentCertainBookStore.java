@@ -46,10 +46,8 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 	}
 	
 	private void releaseLocks(Stack<Tuple<MultiGranularityLock, LockType>> locks) {
-		System.out.println("before while");
 	    while(!locks.empty()) {
 		    Tuple<MultiGranularityLock, LockType> t = locks.pop();
-		    System.out.println("in while");
 		    MultiGranularityLock lock = t.left();
 		    LockType lt = t.right();
 		    lock.release(lt);
@@ -60,7 +58,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			throws BookStoreException {
 		
 		bookMapLock.getExclusive(); //KISS
-		System.out.println("addBooks bookMap X take");
 		
 		if (bookSet == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
@@ -100,7 +97,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		}
 		
 		bookMapLock.release(LockType.X);
-		System.out.println("addBooks bookMap X release");
 		return;
 	}
 
@@ -110,7 +106,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		Stack<Tuple<MultiGranularityLock,LockType>> locks = new Stack<Tuple<MultiGranularityLock,LockType>>();
 		
 		bookMapLock.intendExclusive();
-		System.out.println("addCopies bookMap IX take");
 		locks.push(new Tuple<>(bookMapLock, LockType.IX));
 		
 		if (bookCopiesSet == null) {
@@ -138,7 +133,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			
 			MultiGranularityLock lock = bookMapLocks.get(ISBN);
 			lock.getExclusive();
-			System.out.println("addCopies bookMaps " + Integer.toString(ISBN) + " take");
 			locks.push(new Tuple<>(lock, LockType.X));
 		}
 
@@ -151,9 +145,7 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 			book.addCopies(numCopies);
 		}
 		
-		System.out.println("addCopies before releaseLocks");
 		releaseLocks(locks);
-		System.out.println("addCopies booksMaps releaseLocks");
 	}
 
 	public List<StockBook> getBooks() {
@@ -221,7 +213,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		}
 		
 		bookMapLock.intendExclusive();
-		System.out.println("buyBooks bookMap IX");
 		locks.push(new Tuple<>(bookMapLock, LockType.IX));
 		
 		// Check that all ISBNs that we buy are there first.
@@ -249,7 +240,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 
 			MultiGranularityLock lock = bookMapLocks.get(ISBN);
 			lock.getExclusive();
-			System.out.println("buyBooks bookMaps" + Integer.toString(ISBN) + " X take");
 			locks.push(new Tuple<>(lock, LockType.X));
 		}
 
@@ -268,7 +258,6 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
 		}
 		
 		releaseLocks(locks);
-		System.out.println("buyBooks releaseLocks");
 		return;
 	}
 
