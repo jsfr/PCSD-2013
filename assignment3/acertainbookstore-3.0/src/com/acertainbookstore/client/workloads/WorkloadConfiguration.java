@@ -14,6 +14,7 @@ import com.acertainbookstore.interfaces.StockManager;
  */
 public class WorkloadConfiguration {
 	private int numBooksToBuy = 5;
+	private int numBookToBuy = 1; //Is this an error?
 	private int numEditorPicksToGet = 10;
 	private int numAddCopies = 10;
 	private int numBooksToAdd = 5;
@@ -98,11 +99,11 @@ public class WorkloadConfiguration {
 	}
 
 	public int getNumBookToBuy() {
-		return numBooksToBuy;
+		return numBookToBuy;
 	}
 
 	public void setNumBookToBuy(int numBookToBuy) {
-		this.numBooksToBuy = numBookToBuy;
+		this.numBookToBuy = numBookToBuy;
 	}
 
 	public int getNumEditorPicksToGet() {
