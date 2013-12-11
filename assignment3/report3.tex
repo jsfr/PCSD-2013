@@ -2,12 +2,12 @@
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{ucs}
-\usepackage[danish]{babel}
+\usepackage[english]{babel}
 \usepackage{lmodern}
 \usepackage{mathtools}
 \usepackage[parfill]{parskip}
 \usepackage{url}
-
+\usepackage{verbatim}
 \widowpenalty=1000
 \clubpenalty=1000
 
@@ -42,7 +42,36 @@ Lets assume data for an update/commit is written to disk, but the log is not for
 These two protocols are sufficient, as the log explains all commits to the storage, so in principle we could do the log all over and reach the correct state of storage.
 
 \section*{Question 2: ARIES}
+\begin{table}[h!]
+\begin{minipage}{0.45\textwidth}
+\input{tables/xact}
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
+\input{tables/dpt}
+\end{minipage}
+\end{table}
 
+\begin{enumerate}
+    \item The transaction table and dirty page table can be seen in tables \ref{tab:xact}
+and \ref{tab:dpt} respectively. \texttt{T3} is removed from the transaction
+table as an \texttt{end} was found.
+    \item The winner transactions are the ones completed, and the loser transactions
+are the ones still in the transaction table. Hence $winners = \{T3\}$ and $losers =
+\{T1,T2\}$.
+    \item The redo phase starts at the log record where $LSN=3$ as this is the
+record following the last checkpoint. The undo phase ends at the same log
+record, as \texttt{TRAN\_ID} is one of the loser transactions.
+    \item The log records that may cause page writes are records with
+    $LSN \in \{3,4,8,9\}$ as all pages in
+the table is written to by the loser transactions.
+    \item The log records undone are the records with $LSN \in \{9,8,5,4,3\}$. The
+    ToUndo set is initialised with \texttt{LSN}s $\{9,4\}$ from the transaction table and is
+    expanded by checking the \texttt{LAST\_LSN} value of the record.
+    \item The contents of the log is added with the lines visible in figure
+    \ref{fig:clr}. The log semantics are changed such that for CLR records, the
+    column \texttt{LAST\_LSN} points to the \texttt{LSN} of the record that was undone.
+\end{enumerate}
 
+\input{figures/clr}
 
 \end{document}

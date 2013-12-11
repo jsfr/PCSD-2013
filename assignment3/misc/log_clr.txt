@@ -1,0 +1,7 @@
+LSN   LAST_LSN  TRAN_ID   TYPE    PAGE_ID
+---   --------  -------   ----    -------
+11    9         T2        CLR     P3
+12    8         T2        CLR     P5
+13    5         T2        CLR     P5
+14    4         T1        CLR     P1
+15    3         T1        CLR     P2
