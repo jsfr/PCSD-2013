@@ -1,0 +1,48 @@
+\documentclass[a4paper, 10pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{ucs}
+\usepackage[danish]{babel}
+\usepackage{lmodern}
+\usepackage{mathtools}
+\usepackage[parfill]{parskip}
+\usepackage{url}
+
+\widowpenalty=1000
+\clubpenalty=1000
+
+\author{Ronnie Elken Lindsgaard, Jens Fredsskov, Henrik Bendt\vspace{0.5em}}
+\title{PCSD Assignment 3}
+\date{\today}
+
+\begin{document}
+\maketitle
+\pagebreak
+
+\section*{Question 1: Recovery Concepts}
+\subsection*{1}
+There is no need to implement a scheme for redo nor undo. As Force forces writes to disk for every write to memory, there is no need to ever redo an operation, as it is always commited. With No Steal means that dirty (uncommited) operations are never taken over by other operations, we never have to undo the opereration already written to disk.
+
+\subsection*{2}
+Non-volatile storage simply means, that when we cut off power, stored data is not lost (as opposed to volatile memory). This data can however be lost due to damages to disk like water damage, electrical overcharging (due to lightning strike), magnetic damage, mechanical damage (e.g. to write/read arm), error due to worn out hardware, etc.
+
+Stable storage means that data stored is \textit{never} lost. This is a somewhat lose definition, as what does it mean to never lose stored data. If we assume that armageddon or a nuclear war is not around the corner, stable storage means that you do not lose data stored because of the above mentioned types of disk loss. This could be ensured by distributing data over a range of disks placed around the world (like clouding) in secured places and with lots of redundancy.
+
+\subsection*{3}
+\begin{enumerate}
+    \item The log record for an update must be forced to disk before a data page for it gets written to disk 
+    \item all log records for a transaction must be written to disk before a commit.
+\end{enumerate}
+Why do we need the above?
+Lets assume data for an update/commit is written to disk, but the log is not forced to the stable storage.
+\begin{enumerate}
+    \item Then a crash occures and the log and main memory is lost. As the log was not written, we have no way of knowing that the write we just did to disk is not rightfully part of the comitted data and we cannot undo the incomplete actions. Thus we must ensure log is written before an update.
+    \item  Then a crash occures in the middle of the commit and the log and main memory is lost. As the log was not written, we have no way of knowing what data on disk is dirty and also we must never forget comitted data. Thus we must ensure the log is written before a commit.
+\end{enumerate}
+These two protocols are sufficient, as the log explains all commits to the storage, so in principle we could do the log all over and reach the correct state of storage.
+
+\section*{Question 2: ARIES}
+
+
+
+\end{document}
