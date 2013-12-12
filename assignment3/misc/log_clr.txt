@@ -1,7 +1,7 @@
-LSN   LAST_LSN  TRAN_ID   TYPE    PAGE_ID
----   --------  -------   ----    -------
-11    9         T2        CLR     P3
-12    8         T2        CLR     P5
-13    5         T2        CLR     P5
-14    4         T1        CLR     P1
-15    3         T1        CLR     P2
+LSN   LAST_LSN  TRAN_ID   TYPE                                PAGE_ID
+---   --------  -------   ----                                -------
+11    9         T2        CLR {undoNext=8, LSN=9, TID=T2}     -
+12    11        T2        CLR {undoNext=5, LSN=8, TID=T2}     -
+13    12        T2        CLR {undoNext=4, LSN=5, TID=T2}     -
+14    13        T1        CLR {undoNext=3, LSN=4, TID=T1}     -
+15    14        T1        CLR {undoNext=NULL, LSN=3, TID=T1}  -
