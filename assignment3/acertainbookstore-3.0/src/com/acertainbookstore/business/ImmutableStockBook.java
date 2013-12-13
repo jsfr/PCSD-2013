@@ -63,4 +63,7 @@ public final class ImmutableStockBook extends ImmutableBook implements
 		return editorPick;
 	}
 
+	public String toString() {
+		return super.toString() + " numCopies: " + this.getNumCopies();
+	}
 }

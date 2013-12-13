@@ -1,9 +1,11 @@
 package com.acertainbookstore.client.workloads;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
@@ -16,7 +18,6 @@ public class BookSetGenerator {
 	Random r = new Random();
 	
 	public BookSetGenerator() {
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -27,10 +28,11 @@ public class BookSetGenerator {
 	 */
 	public Set<Integer> sampleFromSetOfISBNs(Set<Integer> isbns, int num) {
 		
-		Set<Integer> tmp = new HashSet<Integer>(isbns);
+		Set<Integer> tmp = Collections.synchronizedSet(new HashSet<Integer>(isbns));
 		Set<Integer> retval = new HashSet<Integer>(num);
 		
-		while(retval.size() < num){
+		while(retval.size() < num || tmp.size() > 0){
+			
 			for(Integer isbn : tmp) {
 				if(r.nextBoolean()) {
 					retval.add(isbn);
@@ -38,6 +40,7 @@ public class BookSetGenerator {
 				}
 			}
 		}
+		
 		return retval;
 	}
 
@@ -54,16 +57,17 @@ public class BookSetGenerator {
 			Integer id = r.nextInt();
 			
 			//Ensure unique isbn each time
-			Integer isbn = r.nextInt();
+			Integer isbn = Math.abs(r.nextInt());
 			while(isbns.contains(isbn)){
-				isbn = r.nextInt();
+				System.out.println("Dumdadum");
+				isbn = Math.abs(r.nextInt());
 			}
 			isbns.add(isbn);
 			
 			String name = id.toString();
 			String author = id.toString();
-			Float price = r.nextFloat();
-			Integer copies = r.nextInt(100);
+			Float price = Math.abs(r.nextFloat());
+			Integer copies = r.nextInt(10) + 1; //10;//Math.abs(r.nextInt(10));
 			Long saleMisses = 0L;
 			Long timesRated = 0L;
 			Long totalRating = 0L;

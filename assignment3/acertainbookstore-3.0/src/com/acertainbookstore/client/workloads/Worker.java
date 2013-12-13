@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Logger;
 
 import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
@@ -31,6 +33,7 @@ public class Worker implements Callable<WorkerRunResult> {
 	private int numTotalFrequentBookStoreInteraction = 0;
 
 	public Worker(WorkloadConfiguration config) {
+		logger.addHandler(new ConsoleHandler());
 		configuration = config;
 		stockManager = configuration.getStockManager();
 		bookSetGenerator = configuration.getBookSetGenerator();
@@ -48,6 +51,8 @@ public class Worker implements Callable<WorkerRunResult> {
 	 * @return
 	 */
 	private boolean runInteraction(float chooseInteraction) {
+		logger.finest("Running interaction");
+		System.out.println("bababa");
 		try {
 			if (chooseInteraction < configuration
 					.getPercentRareStockManagerInteraction()) {
@@ -83,6 +88,7 @@ public class Worker implements Callable<WorkerRunResult> {
 
 		// Perform the warmup runs
 		while (count++ <= configuration.getWarmUpRuns()) {
+			System.out.println("Chuckachuk");
 			chooseInteraction = rand.nextFloat() * 100f;
 			runInteraction(chooseInteraction);
 		}
@@ -113,6 +119,7 @@ public class Worker implements Callable<WorkerRunResult> {
 	 * @throws BookStoreException
 	 */
 	private void runRareStockManagerInteraction() throws BookStoreException {
+		System.out.println("runBareStockManagerInteraction");
 		List<StockBook> books = stockManager.getBooks();
 		Set<StockBook> booksToAdd = bookSetGenerator.nextSetOfStockBooks(configuration.getNumBooksToAdd());
 		for(StockBook book : books) {
@@ -130,6 +137,7 @@ public class Worker implements Callable<WorkerRunResult> {
 	 * @throws BookStoreException
 	 */
 	private void runFrequentStockManagerInteraction() throws BookStoreException {
+		System.out.println("runFrequentStockManagerInteraction");
 		List<StockBook> booksInDemand = stockManager.getBooksInDemand();
 		Set<BookCopy> booksToCopy = new HashSet<BookCopy>();
 		
@@ -146,6 +154,7 @@ public class Worker implements Callable<WorkerRunResult> {
 	 * @throws BookStoreException
 	 */
 	private void runFrequentBookStoreInteraction() throws BookStoreException {
+		System.out.println("runFrequentBookStoreInteraction");
 		List<Book> editorPicks = bookStore.getEditorPicks(configuration.getNumEditorPicksToGet());
 		Set<Integer> isbns = new HashSet<Integer>();
 		for(Book book : editorPicks) {
@@ -160,5 +169,5 @@ public class Worker implements Callable<WorkerRunResult> {
 		}
 		bookStore.buyBooks(booksToBuy);
 	}
-
+	private static Logger logger = Logger.getLogger(Worker.class.getName());
 }

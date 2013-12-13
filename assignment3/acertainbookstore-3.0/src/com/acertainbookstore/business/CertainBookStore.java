@@ -5,11 +5,13 @@ package com.acertainbookstore.business;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
@@ -258,21 +260,79 @@ public class CertainBookStore implements BookStore, StockManager {
 	}
 
 	@Override
-	public synchronized List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
-		// TODO Auto-generated method stub
-		throw new BookStoreException();
-	}
+    public synchronized List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
+        //Check that it is a legal number
+        if(numBooks > bookMap.size() || numBooks < 0) {
+            throw new BookStoreException("The input: " + numBooks 
+                    + BookStoreConstants.INVALID_PARAMS);
+        }
+        
+        Comparator<BookStoreBook> comparator = new Comparator<BookStoreBook>() {
+            @Override
+            public int compare(BookStoreBook b1, BookStoreBook b2) {
+                Float rating = b2.getAverageRating();
+                return rating.compareTo(b1.getAverageRating());
+            }
+        };
+        
+        //Sorting agressively :)
+        PriorityQueue<BookStoreBook> sorted = new PriorityQueue<BookStoreBook>(numBooks, comparator);
+        for(BookStoreBook b : bookMap.values()) {
+            sorted.add(b);
+        }
+        
+        //We only want numBooks books
+        List<Book> retval = new ArrayList<Book>();
+        for(int i = 0; i < numBooks; i++) {
+            retval.add(sorted.poll().immutableBook());
+        }
+        return retval;
+    }
 
-	@Override
-	public synchronized List<StockBook> getBooksInDemand() throws BookStoreException {
-		// TODO Auto-generated method stub
-		throw new BookStoreException();
-	}
+    @Override
+    public synchronized List<StockBook> getBooksInDemand() throws BookStoreException {
+        List<StockBook> listBooks = new ArrayList<StockBook>();
+        
+        for(BookStoreBook b : bookMap.values()) {
+            if(b.hadSaleMiss()) {
+                listBooks.add(b.immutableStockBook());
+            }
+        }
+        return listBooks;
+    }
 
-	@Override
-	public void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
-		// TODO Auto-generated method stub
-		throw new BookStoreException();
-	}
+    @Override
+    public void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
+        if (bookRating == null) {
+            throw new BookStoreException(BookStoreConstants.NULL_INPUT);
+        }
+        // Check that all ISBNs that we buy are there first.
+        int ISBN;
+        BookStoreBook book;
+        for (BookRating bookRate : bookRating) {
+            ISBN = bookRate.getISBN();
+            if (BookStoreUtility.isInvalidISBN(ISBN))
+                throw new BookStoreException(BookStoreConstants.ISBN + ISBN
+                        + BookStoreConstants.INVALID);
+            if (!bookMap.containsKey(ISBN))
+                throw new BookStoreException(BookStoreConstants.ISBN + ISBN
+                        + BookStoreConstants.NOT_AVAILABLE);
+
+            //Make sure the rating is within the correct bounds
+            int rating = bookRate.getRating();
+            if(rating < 0 || rating > 5)
+                throw new BookStoreException(BookStoreConstants.RATING + rating
+                        + BookStoreConstants.INVALID);
+        }
+        
+        //Ok everything checks out, now let's do stuff :D
+        synchronized(this) { //Accessing stuff, need to be careful here
+            for(BookRating bookRate : bookRating) {
+                book = bookMap.get(bookRate.getISBN());
+                book.addRating(bookRate.getRating());
+            }
+        }
+        return;
+    }
 
 }
