@@ -3,7 +3,6 @@
  */
 package com.acertainbookstore.client.workloads;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -11,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -78,21 +76,31 @@ public class CertainWorkload {
 		try {
 			ConsoleHandler logFile = new ConsoleHandler();//FileHandler("log.txt");
 			logger.addHandler(logFile);
-			float aggregateThroughput = 0F;
-			//Long totalLatency = 0L;
+			double aggregateThroughput = 0D;
 			long totalLatency = 0L;
-			float averageLatency = 0F;
+			double averageLatency = 0D;
+			double succRatio = 0D;
+			double customerXactRatio = 0D;
 			int numWorkers = workerRunResults.size();
+			double sumInteractions = 0D;
+			double sumSuccInteractions = 0D;
+			double sumAllInteractions = 0D;
 			
 			for(WorkerRunResult result : workerRunResults) {
 				 int interactions = result.getSuccessfulFrequentBookStoreInteractionRuns();
-				 long time = result.getElapsedTimeInNanoSecs();
-				 aggregateThroughput += interactions/time;
+				 double time = result.getElapsedTimeInNanoSecs()/1E9;
 				 
+				 aggregateThroughput += interactions/time;
 				 totalLatency += result.getElapsedTimeInNanoSecs();
+				 sumInteractions += result.getTotalFrequentBookStoreInteractionRuns();
+				 sumSuccInteractions += result.getSuccessfulFrequentBookStoreInteractionRuns();
+				 sumAllInteractions += result.getSuccessfulInteractions();
 			}
 			
-			averageLatency = totalLatency/numWorkers;
+			averageLatency = (totalLatency/numWorkers)/1E9;
+			succRatio = sumSuccInteractions / sumInteractions;
+			customerXactRatio = sumSuccInteractions / sumAllInteractions;
+			
 			LogRecord record = new LogRecord(Level.INFO, null);
 			Formatter datFormatter = new Formatter() {
 
@@ -102,22 +110,25 @@ public class CertainWorkload {
 					AggregateResult result = (AggregateResult) record.getParameters()[0];
 					StringBuffer sb = new StringBuffer(1000);
 					sb.append(result.getWorkers());
-					
 					sb.append('\t');
 					sb.append(result.getThroughput());
 					sb.append('\t');
 					sb.append(result.getLatency());
+					sb.append('\t');
+                    sb.append(result.getsuccRatio());
+                    sb.append("\t\t");
+                    sb.append(result.getcustomerXactRatio());
 					sb.append('\n');
 					return sb.toString();
 				}
 				
 				public String getHead(Handler h) {
-					return "workers\throughput\tlatency";
+					return "workers\tthroughput (succXact/s)\tlatency (s)\tsuccRatio\tcustomerXactRatio\n";
 				}
 				
 			};
 			logFile.setFormatter(datFormatter);
-			Object[] parameters = {new AggregateResult(numWorkers, aggregateThroughput, averageLatency)};
+			Object[] parameters = {new AggregateResult(numWorkers, aggregateThroughput, averageLatency, succRatio, customerXactRatio)};
 			record.setParameters(parameters);
 			logger.log(record);
 			
@@ -149,6 +160,7 @@ public class CertainWorkload {
 			bookStore = new BookStoreHTTPProxy(serverAddress);
 		}
 
+		// Initialization of books
 		BookSetGenerator bookSetGenerator = new BookSetGenerator();
 		Set<StockBook> books = bookSetGenerator.nextSetOfStockBooks(9001);
 		stockManager.addBooks(books);

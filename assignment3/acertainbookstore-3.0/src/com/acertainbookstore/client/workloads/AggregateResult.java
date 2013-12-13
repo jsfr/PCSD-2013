@@ -2,13 +2,17 @@ package com.acertainbookstore.client.workloads;
 
 public class AggregateResult {
 	private int workers;
-	private float throughput;
-	private float latency;
+	private double throughput;
+	private double latency;
+	private double succRatio;
+	private double customerXactRatio;
 	
-	public AggregateResult(int workers, float throughput, float latency) {
+	public AggregateResult(int workers, double throughput, double latency, double succRatio, double customerXactRatio) {
 		this.workers = workers;
 		this.throughput = throughput;
 		this.latency = latency;
+		this.succRatio = succRatio;
+		this.customerXactRatio = customerXactRatio;
 	}
 
 	public int getWorkers() {
@@ -19,19 +23,35 @@ public class AggregateResult {
 		this.workers = workers;
 	}
 
-	public float getThroughput() {
+	public double getThroughput() {
 		return throughput;
 	}
 
-	public void setThroughput(float throughput) {
+	public void setThroughput(double throughput) {
 		this.throughput = throughput;
 	}
 
-	public float getLatency() {
+	public double getLatency() {
 		return latency;
 	}
 
-	public void setLatency(float latency) {
+	public void setLatency(double latency) {
 		this.latency = latency;
 	}
+	
+    public double getsuccRatio() {
+        return succRatio;
+    }
+
+    public void setsuccRatio(double succRatio) {
+        this.succRatio = succRatio;
+    }
+    
+    public double getcustomerXactRatio() {
+        return customerXactRatio;
+    }
+
+    public void setcustomerXactRatio(double customerXactRatio) {
+        this.customerXactRatio = customerXactRatio;
+    }
 }

@@ -3,6 +3,7 @@
  */
 package com.acertainbookstore.client.workloads;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -137,11 +138,32 @@ public class Worker implements Callable<WorkerRunResult> {
 	 * @throws BookStoreException
 	 */
 	private void runFrequentStockManagerInteraction() throws BookStoreException {
-		System.out.println("runFrequentStockManagerInteraction");
-		List<StockBook> booksInDemand = stockManager.getBooksInDemand();
+		List<StockBook> books = stockManager.getBooks();
 		Set<BookCopy> booksToCopy = new HashSet<BookCopy>();
+		List<StockBook> refillBooks = new ArrayList<StockBook>(); 
 		
-		for(StockBook book : booksInDemand) {
+		if (books.size() < configuration.getNumBooksToRefill()) {
+		    refillBooks.addAll(books);
+		} else {
+		    List<StockBook> subBooks = books.subList(0, configuration.getNumBooksToRefill());
+		    refillBooks.addAll(subBooks);
+		    System.out.println(books.size());
+		    books.removeAll(subBooks);
+		    System.out.println(books.size());
+		    for(StockBook book : books) {
+		        StockBook tmpBook = refillBooks.get(0);
+		        for (StockBook rBook : refillBooks) {
+		            if (rBook.getNumCopies() > tmpBook.getNumCopies()) {
+		                tmpBook = rBook;
+		            }
+		        }
+		        if (book.getNumCopies() < tmpBook.getNumCopies()) {
+		            refillBooks.remove(tmpBook);
+		            refillBooks.add(book);
+		        }
+		    }
+		}
+		for(StockBook book : refillBooks) {
 			BookCopy copy = new BookCopy(book.getISBN(),configuration.getNumAddCopies());
 			booksToCopy.add(copy);
 		}
@@ -157,17 +179,21 @@ public class Worker implements Callable<WorkerRunResult> {
 		System.out.println("runFrequentBookStoreInteraction");
 		List<Book> editorPicks = bookStore.getEditorPicks(configuration.getNumEditorPicksToGet());
 		Set<Integer> isbns = new HashSet<Integer>();
+		System.out.println("kaboom");
 		for(Book book : editorPicks) {
 			isbns.add(book.getISBN());
 		}
+		System.out.println("tha bomb");
 		Set<Integer> isbnsToBuy = bookSetGenerator.sampleFromSetOfISBNs(isbns, configuration.getNumBooksToBuy());
 		Set<BookCopy> booksToBuy = new HashSet<BookCopy>();
-		
+		System.out.println("Jebus christ");
 		for(Integer isbn : isbnsToBuy) {
 			BookCopy copy = new BookCopy(isbn, configuration.getNumBookToBuy());
 			booksToBuy.add(copy);
 		}
+		System.out.println("Its compwetly wurkin");
 		bookStore.buyBooks(booksToBuy);
+		System.out.println("It all sucks");
 	}
 	private static Logger logger = Logger.getLogger(Worker.class.getName());
 }

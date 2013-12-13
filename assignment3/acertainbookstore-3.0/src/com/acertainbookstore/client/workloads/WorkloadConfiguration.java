@@ -20,6 +20,7 @@ public class WorkloadConfiguration {
 	private int numBooksToAdd = 5;
 	private int warmUpRuns = 100;
 	private int numActualRuns = 500;
+	private int numBooksToRefill = 5;
 	private float percentRareStockManagerInteraction = 10f;
 	private float percentFrequentStockManagerInteraction = 40f;
 	private BookSetGenerator bookSetGenerator = null;
@@ -128,6 +129,10 @@ public class WorkloadConfiguration {
 
 	public void setBookSetGenerator(BookSetGenerator bookSetGenerator) {
 		this.bookSetGenerator = bookSetGenerator;
+	}
+	
+	public int getNumBooksToRefill() {
+	    return this.numBooksToRefill;
 	}
 
 }

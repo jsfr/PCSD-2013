@@ -1,11 +1,11 @@
 package com.acertainbookstore.client.workloads;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
@@ -28,20 +28,16 @@ public class BookSetGenerator {
 	 */
 	public Set<Integer> sampleFromSetOfISBNs(Set<Integer> isbns, int num) {
 		
-		Set<Integer> tmp = Collections.synchronizedSet(new HashSet<Integer>(isbns));
-		Set<Integer> retval = new HashSet<Integer>(num);
+		List<Integer> tmp = new ArrayList<Integer>(isbns);
+		Set<Integer> ret = new HashSet<Integer>();
 		
-		while(retval.size() < num || tmp.size() > 0){
-			
-			for(Integer isbn : tmp) {
-				if(r.nextBoolean()) {
-					retval.add(isbn);
-					tmp.remove(isbn);
-				}
-			}
+		Collections.shuffle(tmp);
+		if (num < tmp.size()) {
+		    tmp = tmp.subList(0, num);
 		}
+		ret.addAll(tmp);
 		
-		return retval;
+		return ret;
 	}
 
 	/**
@@ -72,7 +68,7 @@ public class BookSetGenerator {
 			Long timesRated = 0L;
 			Long totalRating = 0L;
 			Boolean editorPick = r.nextBoolean();
-			
+
 			StockBook book = new ImmutableStockBook(
 					isbn,
 					name, 
