@@ -15,6 +15,8 @@ import com.acertainbookstore.utils.BookStoreException;
  */
 public interface StockManager {
 
+	public void dropBooks() throws BookStoreException;
+	
 	/**
 	 * Adds the books in bookSet to the stock.
 	 * 

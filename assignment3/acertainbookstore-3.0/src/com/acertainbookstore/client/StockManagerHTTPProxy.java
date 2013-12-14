@@ -145,4 +145,19 @@ public class StockManagerHTTPProxy implements StockManager {
 		throw new BookStoreException();
 	}
 
+	@Override
+	public void dropBooks() throws BookStoreException {
+		ContentExchange exchange = new ContentExchange();
+		String urlString;
+		urlString = serverAddress + "/" + BookStoreMessageTag.DROPBOOKS;
+
+		exchange.setMethod("POST");
+		exchange.setURL(urlString);
+		//Buffer requestContent = new ByteArrayBuffer(listBooksxmlString);
+		//exchange.setRequestContent(requestContent);
+
+		BookStoreUtility.SendAndRecv(this.client, exchange);
+		
+	}
+
 }

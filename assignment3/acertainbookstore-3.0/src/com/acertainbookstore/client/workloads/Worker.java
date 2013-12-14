@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
+import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.interfaces.StockManager;
@@ -119,14 +120,24 @@ public class Worker implements Callable<WorkerRunResult> {
 	 */
 	private void runRareStockManagerInteraction() throws BookStoreException {
 		List<StockBook> books = stockManager.getBooks();
-		Set<StockBook> booksToAdd = bookSetGenerator.nextSetOfStockBooks(configuration.getNumBooksToAdd());
+		List<Integer> isbns = new ArrayList<Integer>();
 		for(StockBook book : books) {
-			if(booksToAdd.contains(book.getISBN())) {
-				booksToAdd.remove(book);
-			}
+			isbns.add(book.getISBN());
 		}
 		
-		stockManager.addBooks(booksToAdd);
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		Set<StockBook> generatedBooks= bookSetGenerator.nextSetOfStockBooks(configuration.getNumBooksToAdd());
+		
+		for(StockBook book : generatedBooks) {
+			if(!(isbns.contains(book.getISBN()))) {
+				booksToAdd.add(book);
+			}
+		}
+		if(booksToAdd.size() > 0){
+			stockManager.addBooks(booksToAdd);
+		} else {
+			runRareStockManagerInteraction();
+		}
 	}
 
 	/**
@@ -182,7 +193,11 @@ public class Worker implements Callable<WorkerRunResult> {
 			BookCopy copy = new BookCopy(isbn, configuration.getNumBookToBuy());
 			booksToBuy.add(copy);
 		}
-		bookStore.buyBooks(booksToBuy);
+		try {
+			bookStore.buyBooks(booksToBuy);
+		} catch (BookStoreException e) {
+			
+		}
 	}
 	private static Logger logger = Logger.getLogger(Worker.class.getName());
 }

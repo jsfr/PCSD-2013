@@ -181,6 +181,20 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 						.serializeObjectToXMLString(bookStoreresponse);
 				response.getWriter().println(listBooksxmlString);
 				break;
+			case DROPBOOKS:
+				xml = BookStoreUtility
+				.extractPOSTDataFromRequest(request);
+
+				bookStoreresponse = new BookStoreResponse();
+				try {
+					CertainBookStore.getInstance().dropBooks();
+				} catch (BookStoreException ex) {
+					bookStoreresponse.setException(ex);
+				}
+				listBooksxmlString = BookStoreUtility
+						.serializeObjectToXMLString(bookStoreresponse);
+				response.getWriter().println(listBooksxmlString);
+				break;
 
 			default:
 				System.out.println("Unhandled message tag");
