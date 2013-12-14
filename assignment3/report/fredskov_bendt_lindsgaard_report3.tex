@@ -152,11 +152,23 @@ We decided to do all the runs on a single computer to get consistent results and
 \subsection{} % (fold)
 
 %TODO Reliability of matrics and workload fo rpredicting performance
-When the bookstore is runend locally as as a single process, it is not 
-relevant to look at either of the other performance metrices. They are mostly relevant on networks and/or threaded programs. This is also why latency increase linear (by worker) while on a local single core, and this would not be the case on multi threaded programs. For example should the capacity on a single threade bookstore be only one thread at a time, and this should be utilized about 100 percent at all time.
-If the bookstore was multithreaded, it would be very interesting to look at capacity, utilization and scalability also, as this would be much affected by the number of threads and locking scheme.
+When the bookstore runs locally, as as a single process, it is not 
+relevant to look at either of the other performance metrics besides throughput
+and latency. The rest of the metrics are mostly relevant on networks and/or
+threaded programs. This is also why latency increase linearly (by worker) when
+running on a single core, which is not be the case for multi threaded programs.
+e.g. the capacity of a single threaded bookstore is limited to server only one
+request at a time, and would therefore be utilized 100 \% all the time.
 
-When we test the single process bookstore on a network, it could be interesting to also test for utilization and overhead, as these are significant factors on a network.
+For a multithreaded bookstore, capacity, utilization and scalability is
+interesting to look at, as these figures are affected by the number of
+concurrent requests the server can serve, as well as the number of clients
+connecting to the service.
+
+When testing the single process bookstore in a network environment it is also
+interesting to test utilization and overhead as these figures could reveal
+which bottlenecks are caused by the network and which are caused by the
+application or server.
 
 % subsection  (end)
 
