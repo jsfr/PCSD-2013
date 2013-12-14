@@ -121,24 +121,27 @@ the table is written to by the loser transactions.
 \label{sec:questions_for_discussion_on_the_performance_measure_ments}
 
 \subsection{} % (fold)
+
 To generate the data in the bookstore we use the method \texttt{nextSetOfStockBooks} from \texttt{BookSetGenerator} to generate a set of 9001 books. All fields in the books generated from this are initialized using Javas \texttt{Random} class, except for \textit{salesMisses}, \textit{timesRated}, \textit{totalRating} which are always initialized as 0. All integers and strings are made from 32-bit integers (the strings are based of the id from the integer). All books starts out with between 1 and 10 copies.
 
 The tests was all run on a Mac laptop, runnings OS X 10.8.5, with the following hard drive specification
 
 \begin{table}[H]
 \begin{tabular}{rl}
-Capacity:           & 500.11 GB (500,107,862,016 bytes) \\  
-Model:              & APPLE HDD TOSHIBA MK5065GSXF      \\
-Rotational Rate:    & 5400                              \\
-Medium Type:        & Rotational                        \\
-Partition Map Type: & GPT (GUID Partition Table)        \\
-S.M.A.R.T. status:  & Verified                            
+Capacity:           & 500.11 GB (500,107,862,016 bytes) \\ 
+Model:              & APPLE HDD TOSHIBA MK5065GSXF      \\   
+Rotational Rate:    & 5400                              \\   
+Medium Type:        & Rotational                        \\   
+Partition Map Type: & GPT (GUID Partition Table)        \\   
+S.M.A.R.T. status:  & Verified                             
 \end{tabular}
 \end{table}
 
 and 8 GB 1600 MHz DDR3 RAM and an Intel I5 Duo Core 2.5 GHz.
 
-We have 10 runs for each iteration. We then have a iteration for every 10 workers from 10 to 500, meaning that we have 10 runs with 10 workers, 10 runs with 20, and so forth.
+We have 2 runs for each iteration. We then have an iteration for every 5 workers from 5 to 50, meaning that we have 2 runs with 5 workers, 2 runs with 10 workers, and so forth. For each iteration we calculate the average and the standard deviation. We then plot the average of each iteration in a graph.
+
+We decided to do all the runs on a single computer to get consistent results and avoid having the hardware influence the relation between the iterations. We have chosen the minimum number of workers to be 5 as each iteration is then increased by 5 giving a consistent increment. The maximum of 50 is arbitrary, but higher number of workers could pose a problem with regard to the time it takes running the experiment. The 2 number of runs for each iteration is arbitrary, but having multiple runs on each iteration allows us to calculate the average and standard deviation, thus adding to the credibility of the result. The hardware setup was chosen at random and is simply one of the computers we had at hand.
 
 % subsection  (end)
 
@@ -147,6 +150,13 @@ We have 10 runs for each iteration. We then have a iteration for every 10 worker
 % subsection  (end)
 
 \subsection{} % (fold)
+
+%TODO Reliability of matrics and workload fo rpredicting performance
+When the bookstore is runend locally as as a single process, it is not 
+relevant to look at either of the other performance metrices. They are mostly relevant on networks and/or threaded programs. This is also why latency increase linear (by worker) while on a local single core, and this would not be the case on multi threaded programs. For example should the capacity on a single threade bookstore be only one thread at a time, and this should be utilized about 100 percent at all time.
+If the bookstore was multithreaded, it would be very interesting to look at capacity, utilization and scalability also, as this would be much affected by the number of threads and locking scheme.
+
+When we test the single process bookstore on a network, it could be interesting to also test for utilization and overhead, as these are significant factors on a network.
 
 % subsection  (end)
 
