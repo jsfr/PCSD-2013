@@ -1,34 +1,69 @@
-\documentclass[a4paper, 10pt]{article}
+\documentclass[a4paper, 11pt]{article}
+
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{ucs}
 \usepackage[english]{babel}
-\usepackage{lmodern}
 \usepackage{mathtools}
-\usepackage[parfill]{parskip}
-\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{ulem}
 \usepackage{verbatim}
+\usepackage{fancyhdr}
+\usepackage[parfill]{parskip}
+\usepackage{graphicx}
+\usepackage{palatino}
+\usepackage{float}
+\usepackage[font={small,it}]{caption}
+
+\linespread{1.05}
+\pagestyle{fancyplain}
+\fancyhead{}
+\fancyfoot[L]{}
+\fancyfoot[C]{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{13.6pt}
+
 \widowpenalty=1000
 \clubpenalty=1000
 
-\author{Ronnie Elken Lindsgaard, Jens Fredsskov, Henrik Bendt\vspace{0.5em}}
-\title{PCSD Assignment 3}
-\date{\today}
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}}
+
+\title{ 
+\normalfont \normalsize 
+\textsc{University of Copenhagen} \\ [25pt]
+\horrule{0.5pt} \\[0.4cm]
+\huge PCSD: Assignment 3 \\
+\horrule{2pt} \\[0.5cm]
+}
+
+\author{Jens Fredskov (chw752)\\Henrik Bendt (gwk553)\\Ronni Lindsgaard (mxb392)} % Your name
 
 \begin{document}
 \maketitle
 \pagebreak
 
-\section*{Question 1: Recovery Concepts}
-\subsection*{1}
+\section{Recovery Concepts} % (fold)
+\label{sec:recovery_concepts}
+
+\subsection{} % (fold)
+
 There is no need to implement a scheme for redo nor undo. As Force forces writes to disk for every write to memory, there is no need to ever redo an operation, as it is always commited. With No Steal means that dirty (uncommited) operations are never taken over by other operations, we never have to undo the opereration already written to disk.
 
-\subsection*{2}
+% subsection  (end)
+
+\subsection{} % (fold)
+
 Non-volatile storage simply means, that when we cut off power, stored data is not lost (as opposed to volatile memory). This data can however be lost due to damages to disk like water damage, electrical overcharging (due to lightning strike), magnetic damage, mechanical damage (e.g. to write/read arm), error due to worn out hardware, etc.
 
 Stable storage means that data stored is \textit{never} lost. This is a somewhat lose definition, as what does it mean to never lose stored data. If we assume that armageddon or a nuclear war is not around the corner, stable storage means that you do not lose data stored because of the above mentioned types of disk loss. This could be ensured by distributing data over a range of disks placed around the world (like clouding) in secured places and with lots of redundancy.
 
-\subsection*{3}
+% subsection  (end)
+
+\subsection{} % (fold)
+
 \begin{enumerate}
     \item The log record for an update must be forced to disk before a data page for it gets written to disk 
     \item all log records for a transaction must be written to disk before a commit.
@@ -41,14 +76,20 @@ Lets assume data for an update/commit is written to disk, but the log is not for
 \end{enumerate}
 These two protocols are sufficient, as the log explains all commits to the storage, so in principle we could do the log all over and reach the correct state of storage.
 
-\section*{Question 2: ARIES}
-\begin{table}[h!]
-\begin{minipage}{0.45\textwidth}
-\input{tables/xact}
-\end{minipage}
-\begin{minipage}{0.45\textwidth}
-\input{tables/dpt}
-\end{minipage}
+% subsection  (end)
+
+% section recovery_concepts (end)
+
+\section{ARIES} % (fold)
+\label{sec:aries}
+
+\begin{table}[H]
+    \begin{minipage}{0.5\textwidth}
+        \input{tables/xact}
+    \end{minipage}
+    \begin{minipage}{0.5\textwidth}
+        \input{tables/dpt}
+    \end{minipage}
 \end{table}
 
 \begin{enumerate}
@@ -73,5 +114,42 @@ the table is written to by the loser transactions.
 \end{enumerate}
 
 \input{figures/clr}
+
+% section aries (end)
+
+\section{Questions for Discussion on the Performance Measurements} % (fold)
+\label{sec:questions_for_discussion_on_the_performance_measure_ments}
+
+\subsection{} % (fold)
+To generate the data in the bookstore we use the method \texttt{nextSetOfStockBooks} from \texttt{BookSetGenerator} to generate a set of 9001 books. All fields in the books generated from this are initialized using Javas \texttt{Random} class, except for \textit{salesMisses}, \textit{timesRated}, \textit{totalRating} which are always initialized as 0. All integers and strings are made from 32-bit integers (the strings are based of the id from the integer). All books starts out with between 1 and 10 copies.
+
+The tests was all run on a Mac laptop, runnings OS X 10.8.5, with the following hard drive specification
+
+\begin{table}[H]
+\begin{tabular}{rl}
+Capacity:           & 500.11 GB (500,107,862,016 bytes) \\  
+Model:              & APPLE HDD TOSHIBA MK5065GSXF      \\
+Rotational Rate:    & 5400                              \\
+Medium Type:        & Rotational                        \\
+Partition Map Type: & GPT (GUID Partition Table)        \\
+S.M.A.R.T. status:  & Verified                            
+\end{tabular}
+\end{table}
+
+and 8 GB 1600 MHz DDR3 RAM and an Intel I5 Duo Core 2.5 GHz.
+
+We have 10 runs for each iteration. We then have a iteration for every 10 workers from 10 to 500, meaning that we have 10 runs with 10 workers, 10 runs with 20, and so forth.
+
+% subsection  (end)
+
+\subsection{} % (fold)
+
+% subsection  (end)
+
+\subsection{} % (fold)
+
+% subsection  (end)
+
+% section questions_for_discussion_on_the_performance_measure_ments (end)
 
 \end{document}
