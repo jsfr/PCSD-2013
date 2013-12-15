@@ -35,6 +35,7 @@ public class Worker implements Callable<WorkerRunResult> {
 
 	public Worker(WorkloadConfiguration config) {
 		logger.addHandler(new ConsoleHandler());
+		logger.info("Worker initialized");
 		configuration = config;
 		stockManager = configuration.getStockManager();
 		bookSetGenerator = configuration.getBookSetGenerator();
@@ -76,6 +77,7 @@ public class Worker implements Callable<WorkerRunResult> {
 	 * and return result in the end
 	 */
 	public WorkerRunResult call() throws Exception {
+		
 		int count = 1;
 		long startTimeInNanoSecs = 0;
 		long endTimeInNanoSecs = 0;
@@ -85,6 +87,7 @@ public class Worker implements Callable<WorkerRunResult> {
 		Random rand = new Random();
 		float chooseInteraction;
 
+		logger.info("Warming up");
 		// Perform the warmup runs
 		while (count++ <= configuration.getWarmUpRuns()) {
 			chooseInteraction = rand.nextFloat() * 100f;
@@ -94,7 +97,8 @@ public class Worker implements Callable<WorkerRunResult> {
 		count = 1;
 		numTotalFrequentBookStoreInteraction = 0;
 		numSuccessfulFrequentBookStoreInteraction = 0;
-
+		
+		logger.info("Starting benchmark" );
 		// Perform the actual runs
 		startTimeInNanoSecs = System.nanoTime();
 		while (count++ <= configuration.getNumActualRuns()) {
@@ -105,6 +109,7 @@ public class Worker implements Callable<WorkerRunResult> {
 		}
 		endTimeInNanoSecs = System.nanoTime();
 		timeForRunsInNanoSecs += (endTimeInNanoSecs - startTimeInNanoSecs);
+		logger.info("Benchmark complete");
 		return new WorkerRunResult(successfulInteractions,
 				timeForRunsInNanoSecs, configuration.getNumActualRuns(),
 				numSuccessfulFrequentBookStoreInteraction,

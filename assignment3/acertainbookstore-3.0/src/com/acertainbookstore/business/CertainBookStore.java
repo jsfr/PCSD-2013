@@ -42,7 +42,7 @@ public class CertainBookStore implements BookStore, StockManager {
 	 * Method added for benchmarking. Should not be available in production ;)
 	 */
 	public synchronized void dropBooks() throws BookStoreException {
-		bookMap = new HashMap<Integer, BookStoreBook>();
+		bookMap.clear();
 	}
 	
 	public synchronized static CertainBookStore getInstance() {

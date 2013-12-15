@@ -3,14 +3,13 @@
  */
 package com.acertainbookstore.client.workloads;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.ConsoleHandler;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
@@ -33,6 +32,10 @@ import com.acertainbookstore.interfaces.StockManager;
  * 
  */
 public class CertainWorkload {
+	
+	static boolean localTest = true;
+	static String serverAddress = "http://localhost:8081";
+	
 
 	private static int intArg(String[] args, int argNum) throws IndexOutOfBoundsException {
 		return Integer.parseInt(args[argNum]);
@@ -43,8 +46,8 @@ public class CertainWorkload {
 	 */
 	public static void main(String[] args) throws Exception {
 		
-		int numConcurrentWorkloadThreadsStep = 5;
-		int numConcurrentWorkloadThreadsMax = 100;
+		int numConcurrentWorkloadThreadsStep = 1;
+		int numConcurrentWorkloadThreadsMax = 30;
 		int numRunsPerStep = 10;
 		
 		try {
@@ -55,52 +58,91 @@ public class CertainWorkload {
 		} catch (IndexOutOfBoundsException e) {
 			//Just ignore this
 		}
-		
-		if(args.length > 0) {
-			numConcurrentWorkloadThreadsMax = Integer.parseInt(args[0]);
-		} 
-		
-		String serverAddress = "http://localhost:8081";
-		boolean localTest = true;
-		List<List<WorkerRunResult>> workerRunResultsList = new ArrayList<List<WorkerRunResult>>();
-
-		for(int j = numConcurrentWorkloadThreadsStep; 
-				j < numConcurrentWorkloadThreadsMax+1; 
-				j = j + numConcurrentWorkloadThreadsStep) {
-			
-			initializeBookStoreData(serverAddress, localTest);
-			
-
-			ExecutorService exec = Executors
-					.newFixedThreadPool(j);
-			for (int k = 0; k < numRunsPerStep; k++) {
-				consoleLogger.info("Running with " + j + " concurrent threads, run #" + (k+1));
-			List<WorkerRunResult> workerRunResults = new ArrayList<WorkerRunResult>();
-			workerRunResultsList.add(workerRunResults);
-			List<Future<WorkerRunResult>> runResults = new ArrayList<Future<WorkerRunResult>>();
-
-			for (int i = 0; i < j; i++) {
-				
-				
-				// The server address is ignored if localTest is true
-				WorkloadConfiguration config = new WorkloadConfiguration(
-						serverAddress, localTest);
-				Worker workerTask = new Worker(config);
-				// Keep the futures to wait for the result from the thread
-				runResults.add(exec.submit(workerTask));
-			}
-			
-
-			// Get the results from the threads using the futures returned
-			for (Future<WorkerRunResult> futureRunResult : runResults) {
-				WorkerRunResult runResult = futureRunResult.get(); // blocking call
-				workerRunResults.add(runResult);
-			}
-			}
-			exec.shutdownNow(); // shutdown the executor
-
+		String fname = "benchmark.remote.dat";
+		if(localTest) {
+			fname = "benchmark.local.dat";
 		}
-		reportMetric(workerRunResultsList);
+		FileHandler logFile = new FileHandler(fname);
+		Formatter datFormatter = new Formatter() {
+
+			@Override
+			public String format(LogRecord record) {
+				AggregateResult result = (AggregateResult) record.getParameters()[0];
+				StringBuffer sb = new StringBuffer(1000);
+				sb.append(result.getWorkers());
+				sb.append('\t');
+				sb.append(result.getThroughput());
+				sb.append('\t');
+				sb.append(result.getLatency());
+				sb.append('\t');
+                sb.append(result.getsuccRatio());
+                sb.append('\t');
+                sb.append(result.getcustomerXactRatio());
+				sb.append('\n');
+				return sb.toString();
+			}
+			
+			public String getHead(Handler h) {
+				return "workers\tthroughput (succXact/s)\tlatency (s)\tsuccRatio\tcustomerXactRatio\n";
+			}
+			
+		};
+		logFile.setFormatter(datFormatter);
+		benchmarkLogger.addHandler(logFile);
+		
+		runTests(numConcurrentWorkloadThreadsStep, numConcurrentWorkloadThreadsMax, numRunsPerStep);
+	}
+	
+	public static void runTests(int step, int max, int runs) throws Exception {
+		List<WorkerRunResult> workerRunResults;
+		List<Future<WorkerRunResult>> runResults;
+		ExecutorService exec;
+		WorkloadConfiguration config;
+		Worker workerTask;
+		
+		//Do everything we did before
+		//Run max/steps runs, or something like that
+		for(int j = step; 
+				j < max+1; 
+				j = j + step) {
+			//Run the test numRunsPerStep times
+			for (int k = 0; k < runs; k++) {
+				//We want the same number of workers for all tests in this step
+				exec = Executors
+						.newFixedThreadPool(j);
+						//Re-initialize the bookstore for each run
+						initializeBookStoreData(serverAddress, localTest);
+						
+						consoleLogger.info("Running with " + j + " workers, run #" + (k+1));
+						
+						workerRunResults = new ArrayList<WorkerRunResult>();
+						
+						runResults = new ArrayList<Future<WorkerRunResult>>();
+			
+						for (int i = 0; i < j; i++) {
+							consoleLogger.info("Adding worker");
+							// The server address is ignored if localTest is true
+							config = new WorkloadConfiguration(
+									serverAddress, localTest);
+							workerTask = new Worker(config);
+							// Keep the futures to wait for the result from the thread
+							runResults.add(exec.submit(workerTask));
+						}
+						
+			
+						// Get the results from the threads using the futures returned
+						for (Future<WorkerRunResult> futureRunResult : runResults) {
+							
+							WorkerRunResult runResult = futureRunResult.get(); // blocking call
+							workerRunResults.add(runResult);
+						}
+
+						exec.awaitTermination(100, TimeUnit.MILLISECONDS); // shutdown the executor
+						reportMetric(workerRunResults);
+						exec = null;
+					}
+				}
+		consoleLogger.info("Benchmarking complete");
 	}
 
 	/**
@@ -108,40 +150,8 @@ public class CertainWorkload {
 	 * 
 	 * @param workerRunResults
 	 */
-	public static void reportMetric(List<List<WorkerRunResult>> workerRunResultsLists) {
-		// TODO: You should aggregate metrics and output them for plotting here
+	public static void reportMetric(List<WorkerRunResult> workerRunResults) {
 		try {
-			FileHandler logFile = new FileHandler("benchmark.dat");
-			
-			Formatter datFormatter = new Formatter() {
-
-				@Override
-				public String format(LogRecord record) {
-					
-					AggregateResult result = (AggregateResult) record.getParameters()[0];
-					StringBuffer sb = new StringBuffer(1000);
-					sb.append(result.getWorkers());
-					sb.append('\t');
-					sb.append(result.getThroughput());
-					sb.append('\t');
-					sb.append(result.getLatency());
-					sb.append('\t');
-                    sb.append(result.getsuccRatio());
-                    sb.append('\t');
-                    sb.append(result.getcustomerXactRatio());
-					sb.append('\n');
-					return sb.toString();
-				}
-				
-				public String getHead(Handler h) {
-					return "workers\tthroughput (succXact/s)\tlatency (s)\tsuccRatio\tcustomerXactRatio\n";
-				}
-				
-			};
-			
-			logger.addHandler(logFile);
-			
-			for(List<WorkerRunResult> workerRunResults : workerRunResultsLists) {
 				double aggregateThroughput = 0D;
 				long totalLatency = 0L;
 				double averageLatency = 0D;
@@ -167,17 +177,11 @@ public class CertainWorkload {
 				succRatio = sumSuccInteractions / sumInteractions;
 				customerXactRatio = sumSuccInteractions / sumAllInteractions;
 				
-				logFile.setFormatter(datFormatter);
 				Object[] parameters = {new AggregateResult(numWorkers, aggregateThroughput, averageLatency, succRatio, customerXactRatio)};
 				LogRecord record = new LogRecord(Level.INFO, "Added result");
 				record.setParameters(parameters);
-				logger.log(record);
-			}
-			
-			
-			
-			
-		} catch (SecurityException | IOException e) {
+				benchmarkLogger.log(record);
+		} catch (SecurityException e) {
 			e.printStackTrace();
 		}
 	}
@@ -193,6 +197,7 @@ public class CertainWorkload {
 	 */
 	public static void initializeBookStoreData(String serverAddress,
 			boolean localTest) throws Exception {
+		consoleLogger.info("Initializing");
 		BookStore bookStore = null;
 		StockManager stockManager = null;
 		// Initialize the RPC interfaces if its not a localTest
@@ -207,9 +212,11 @@ public class CertainWorkload {
 		stockManager.dropBooks();
 		// Initialization of books
 		BookSetGenerator bookSetGenerator = new BookSetGenerator();
-		Set<StockBook> books = bookSetGenerator.nextSetOfStockBooks(9001);
+		Set<StockBook> books = bookSetGenerator.nextSetOfStockBooks(500);
+		
 		stockManager.addBooks(books);
 		
+		consoleLogger.info("Finished initializing books");
 		// Finished initialization, stop the clients if not localTest
 		if (!localTest) {
 			((BookStoreHTTPProxy) bookStore).stop();
@@ -218,5 +225,5 @@ public class CertainWorkload {
 
 	}
 	private static Logger consoleLogger = Logger.getLogger(CertainWorkload.class.getName() + "Console");
-	private static Logger logger = Logger.getLogger(CertainWorkload.class.getName());
+	private static Logger benchmarkLogger = Logger.getLogger(CertainWorkload.class.getName());
 }
