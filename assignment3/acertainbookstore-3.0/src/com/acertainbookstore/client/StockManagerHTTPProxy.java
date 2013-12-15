@@ -153,8 +153,10 @@ public class StockManagerHTTPProxy implements StockManager {
 
 		exchange.setMethod("POST");
 		exchange.setURL(urlString);
-		//Buffer requestContent = new ByteArrayBuffer(listBooksxmlString);
-		//exchange.setRequestContent(requestContent);
+		String listBooksxmlString = BookStoreUtility
+				.serializeObjectToXMLString(null);
+		Buffer requestContent = new ByteArrayBuffer(listBooksxmlString);
+		exchange.setRequestContent(requestContent);
 
 		BookStoreUtility.SendAndRecv(this.client, exchange);
 		

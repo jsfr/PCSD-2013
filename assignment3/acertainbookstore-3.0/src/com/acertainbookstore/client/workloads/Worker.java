@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
-import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.interfaces.StockManager;
@@ -53,7 +52,6 @@ public class Worker implements Callable<WorkerRunResult> {
 	 * @return
 	 */
 	private boolean runInteraction(float chooseInteraction) {
-		logger.finest("Running interaction");
 		try {
 			if (chooseInteraction < configuration
 					.getPercentRareStockManagerInteraction()) {
@@ -67,7 +65,7 @@ public class Worker implements Callable<WorkerRunResult> {
 				numSuccessfulFrequentBookStoreInteraction++;
 			}
 		} catch (BookStoreException ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			return false;
 		}
 		return true;
@@ -173,7 +171,8 @@ public class Worker implements Callable<WorkerRunResult> {
 			BookCopy copy = new BookCopy(book.getISBN(),configuration.getNumAddCopies());
 			booksToCopy.add(copy);
 		}
-		stockManager.addCopies(booksToCopy);		
+		
+		stockManager.addCopies(booksToCopy);
 	}
 
 	/**
@@ -193,11 +192,7 @@ public class Worker implements Callable<WorkerRunResult> {
 			BookCopy copy = new BookCopy(isbn, configuration.getNumBookToBuy());
 			booksToBuy.add(copy);
 		}
-		try {
-			bookStore.buyBooks(booksToBuy);
-		} catch (BookStoreException e) {
-			
-		}
+		bookStore.buyBooks(booksToBuy);
 	}
 	private static Logger logger = Logger.getLogger(Worker.class.getName());
 }

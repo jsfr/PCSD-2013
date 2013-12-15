@@ -55,7 +55,6 @@ public class BookSetGenerator {
 			//Ensure unique isbn each time
 			Integer isbn = Math.abs(r.nextInt());
 			while(isbns.contains(isbn)){
-				System.out.println("Dumdadum");
 				isbn = Math.abs(r.nextInt());
 			}
 			isbns.add(isbn);
@@ -63,7 +62,7 @@ public class BookSetGenerator {
 			String name = id.toString();
 			String author = id.toString();
 			Float price = Math.abs(r.nextFloat());
-			Integer copies = r.nextInt(10) + 1; //10;//Math.abs(r.nextInt(10));
+			Integer copies = r.nextInt(10) + 1;
 			Long saleMisses = 0L;
 			Long timesRated = 0L;
 			Long totalRating = 0L;
