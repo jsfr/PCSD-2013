@@ -1,22 +1,15 @@
 package com.acertainbookstore.business;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Callable;
 
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.HttpExchange;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import com.acertainbookstore.client.BookStoreClientConstants;
-import com.acertainbookstore.server.SlaveBookStoreHTTPMessageHandler;
 import com.acertainbookstore.utils.BookStoreException;
-import com.acertainbookstore.utils.BookStoreMessageTag;
-import com.acertainbookstore.utils.BookStoreResponse;
-import com.acertainbookstore.utils.BookStoreResult;
 import com.acertainbookstore.utils.BookStoreUtility;
 
 /**
