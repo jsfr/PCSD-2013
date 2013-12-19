@@ -5,7 +5,7 @@ package com.acertainbookstore.client;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -35,10 +35,12 @@ import com.acertainbookstore.utils.BookStoreUtility;
  */
 public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 	private HttpClient client;
-	private Set<String> slaveAddresses;
+	private List<String> slaveAddresses;
 	private String masterAddress;
 	private String filePath = "/universe/pcsd/acertainbookstore/src/proxy.properties";
 	private long snapshotId = 0;
+	private int baton = 0;
+	private int masterPoints = 0;
 
 	/**
 	 * Initialize the client object
@@ -71,7 +73,7 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 	private void initializeReplicationAwareMappings() throws IOException {
 
 		Properties props = new Properties();
-		slaveAddresses = new HashSet<String>();
+		slaveAddresses = new ArrayList<String>();
 
 		props.load(new FileInputStream(filePath));
 		this.masterAddress = props
@@ -99,7 +101,20 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 	}
 
 	public String getReplicaAddress() {
-		return ""; // TODO
+		int numSlaves = slaveAddresses.size();
+		int limit = numSlaves+1;
+		
+		baton = baton++ % limit;
+		
+		if(baton == numSlaves) {
+			if(masterPoints > 0) {
+				masterPoints--;
+				return getReplicaAddress();
+			}
+			return masterAddress;
+		} else {
+			return slaveAddresses.get(baton);
+		}
 	}
 
 	public String getMasterServerAddress() {
@@ -115,6 +130,7 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 		BookStoreResult result = null;
 
 		ContentExchange exchange = new ContentExchange();
+		masterPoints++;
 		String urlString = getMasterServerAddress() + "/"
 				+ BookStoreMessageTag.ADDBOOKS;
 		exchange.setMethod("POST");
@@ -133,6 +149,7 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 		BookStoreResult result = null;
 
 		ContentExchange exchange = new ContentExchange();
+		masterPoints++;
 		String urlString = getMasterServerAddress() + "/"
 				+ BookStoreMessageTag.ADDCOPIES;
 		exchange.setMethod("POST");
@@ -167,7 +184,7 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 
 		BookStoreResult result = null;
 		ContentExchange exchange = new ContentExchange();
-
+		masterPoints++;
 		String urlString = getMasterServerAddress() + "/"
 				+ BookStoreMessageTag.UPDATEEDITORPICKS + "?";
 		exchange.setMethod("POST");

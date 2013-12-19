@@ -7,7 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -37,10 +37,12 @@ import com.acertainbookstore.utils.BookStoreUtility;
  */
 public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 	private HttpClient client;
-	private Set<String> slaveAddresses;
+	private List<String> slaveAddresses;
 	private String masterAddress;
 	private String filePath = "/universe/pcsd/acertainbookstore/src/proxy.properties";
 	private volatile long snapshotId = 0;
+	private int masterPoints = 0;
+	private int baton = 0;
 
 	public long getSnapshotId() {
 		return snapshotId;
@@ -81,7 +83,7 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 	private void initializeReplicationAwareMappings() throws IOException {
 
 		Properties props = new Properties();
-		slaveAddresses = new HashSet<String>();
+		slaveAddresses = new ArrayList<String>();
 
 		props.load(new FileInputStream(filePath));
 		this.masterAddress = props
@@ -102,7 +104,20 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 	}
 
 	public String getReplicaAddress() {
-		return ""; // TODO
+		int numSlaves = slaveAddresses.size();
+		int limit = numSlaves+1;
+		
+		baton = baton++ % limit;
+		
+		if(baton == numSlaves) {
+			if(masterPoints > 0) {
+				masterPoints--;
+				return getReplicaAddress();
+			}
+			return masterAddress;
+		} else {
+			return slaveAddresses.get(baton);
+		}
 	}
 
 	public String getMasterServerAddress() {
