@@ -1,0 +1,83 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{ucs}
+\usepackage[english]{babel}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{ulem}
+\usepackage{verbatim}
+\usepackage{fancyhdr}
+\usepackage[parfill]{parskip}
+\usepackage{graphicx}
+\usepackage{palatino}
+\usepackage{float}
+\usepackage[font={small,it}]{caption}
+
+\linespread{1.05}
+\pagestyle{fancyplain}
+\fancyhead{}
+\fancyfoot[L]{}
+\fancyfoot[C]{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{13.6pt}
+
+\widowpenalty=1000
+\clubpenalty=1000
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}}
+
+\title{ 
+\normalfont \normalsize 
+\textsc{University of Copenhagen} \\ [25pt]
+\horrule{0.5pt} \\[0.4cm]
+\huge PCSD: Assignment 4 \\
+\horrule{2pt} \\[0.5cm]
+}
+
+\author{Jens Fredskov (chw752)\\Henrik Bendt (gwk553)\\Ronni Lindsgaard (mxb392)} % Your name
+
+\begin{document}
+\maketitle
+\pagebreak
+
+\section{Communication Abstractions} % (fold)
+\label{sec:communication_abstractions}
+
+To utilize RPC for an asynchronous, persistent communication protocol we would use a server (similar to the email protocol) to collect and forward all communication between all procedures. This is done in the following way.
+
+On the client side the API contains the methods \texttt{push} and \texttt{pull}. When a client comes online it immediately performs a pull-request to the server with its unique ID (could be a username, MAC address, etc.). If no messages are present the server returns ok, otherwise it returns all outstanding messages. When a client needs to communicate either a request or a response to another client it does so by sending it to the server with the \texttt{push} method.
+
+On the server side the API contains the method \texttt{push}. When a client sends a message the server immediately returns ok (to avoid blocking). It then tries to send the message, using \texttt{push} to the receiver. If the receiver is not present, the message is stored on the server until the receiver it self issues a \texttt{pull}.
+
+%TODO: limitations! important stuff
+
+% section communication_abstractions (end)
+
+\section{Reliability} % (fold)
+\label{sec:reliability}
+
+\begin{enumerate}
+    \item The probability of the daisy chain connecting all buildings is the same as the probability of all links working which is $(1-p)^N$ where $N$ is the number of links.
+    \item If we have $N+1$ buildings, we must have $\sum_{k=0}^N k = N(N-1) \over 2$ links. 
+\end{enumerate}
+
+% section reliability (end)
+
+\section{Implementation} % (fold)
+\label{sec:implementation}
+
+\paragraph{NOTES} % (fold)
+\label{par:notes}
+
+The load balancing is done independently on both proxies, meaning that they might end up counteracting each other.
+
+% paragraph notes (end)
+
+% section implementation (end)
+
+\end{document}
