@@ -63,5 +63,34 @@ public class SlaveCertainBookStore implements ReplicatedReadOnlyBookStore,
 				bookStore.getEditorPicks(numBooks), snapshotId);
 		return result;
 	}
+	
+	public synchronized void addBooks(Set<StockBook> bookSet)
+            throws BookStoreException {
+	    bookStore.addBooks(bookSet); // If this fails it will throw an exception
+        snapshotId++;
+	    return;
+    }
+	
+	public synchronized void addCopies(Set<BookCopy> bookCopiesSet)
+            throws BookStoreException {
+	    bookStore.addCopies(bookCopiesSet); // If this fails it will throw an exception
+        snapshotId++;
+	    return;
+	}
+	
+	public synchronized void updateEditorPicks(
+            Set<BookEditorPick> editorPicks) 
+                    throws BookStoreException {
+	    bookStore.updateEditorPicks(editorPicks);
+	    snapshotId++;
+        return;
+    }
+	
+	public synchronized void buyBooks(Set<BookCopy> bookCopiesToBuy)
+            throws BookStoreException {
+	    bookStore.buyBooks(bookCopiesToBuy);
+	    snapshotId++;
+        return;
+    }
 
 }

@@ -30,7 +30,7 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 		ReplicatedStockManager {
 	private CertainBookStore bookStore = null;
 	private static MasterCertainBookStore instance = null;
-	private long snapShotId = 0;
+	private long snapshotId = 0;
 	private Replicator replicator = null;
 	private Set<String> slaveServers;
 	private static int maxReplicatorThreads = 10;
@@ -101,7 +101,7 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 	public synchronized BookStoreResult getBooks(Set<Integer> ISBNList)
 			throws BookStoreException {
 		BookStoreResult result = new BookStoreResult(
-				bookStore.getBooks(ISBNList), snapShotId);
+				bookStore.getBooks(ISBNList), snapshotId);
 		return result;
 	}
 
@@ -113,13 +113,13 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 	public synchronized BookStoreResult getEditorPicks(int numBooks)
 			throws BookStoreException {
 		BookStoreResult result = new BookStoreResult(
-				bookStore.getEditorPicks(numBooks), snapShotId);
+				bookStore.getEditorPicks(numBooks), snapshotId);
 		return result;
 	}
 
 	public synchronized BookStoreResult getBooks() throws BookStoreException {
 		BookStoreResult result = new BookStoreResult(bookStore.getBooks(),
-				snapShotId);
+				snapshotId);
 		return result;
 	}
 
@@ -136,9 +136,9 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 		List<Future<ReplicationResult>> replicatedSlaveFutures = replicator
 				.replicate(slaveServers, request);
 		bookStore.addBooks(bookSet); // If this fails it will throw an exception
-		snapShotId++;
+		snapshotId++;
 		waitForSlaveUpdates(replicatedSlaveFutures);
-		BookStoreResult result = new BookStoreResult(null, snapShotId);
+		BookStoreResult result = new BookStoreResult(null, snapshotId);
 		return result;
 	}
 
@@ -150,9 +150,9 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 				.replicate(slaveServers, request);
 		bookStore.addCopies(bookCopiesSet); // If this fails it will throw an
 											// exception
-		snapShotId++;
+		snapshotId++;
 		waitForSlaveUpdates(replicatedSlaveFutures);
-		BookStoreResult result = new BookStoreResult(null, snapShotId);
+		BookStoreResult result = new BookStoreResult(null, snapshotId);
 		return result;
 	}
 
@@ -164,9 +164,9 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 				.replicate(slaveServers, request);
 		bookStore.updateEditorPicks(editorPicks); // If this fails it will throw
 													// an exception
-		snapShotId++;
+		snapshotId++;
 		waitForSlaveUpdates(replicatedSlaveFutures);
-		BookStoreResult result = new BookStoreResult(null, snapShotId);
+		BookStoreResult result = new BookStoreResult(null, snapshotId);
 		return result;
 	}
 
@@ -178,9 +178,9 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 				.replicate(slaveServers, request);
 		bookStore.buyBooks(booksToBuy); // If this fails it will throw an
 										// exception
-		snapShotId++;
+		snapshotId++;
 		waitForSlaveUpdates(replicatedSlaveFutures);
-		BookStoreResult result = new BookStoreResult(null, snapShotId);
+		BookStoreResult result = new BookStoreResult(null, snapshotId);
 		return result;
 	}
 
