@@ -133,6 +133,7 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 		BookStoreResult result = null;
 
 		ContentExchange exchange = new ContentExchange();
+		masterPoints++;
 		String urlString = getMasterServerAddress() + "/"
 				+ BookStoreMessageTag.BUYBOOKS;
 		exchange.setMethod("POST");
