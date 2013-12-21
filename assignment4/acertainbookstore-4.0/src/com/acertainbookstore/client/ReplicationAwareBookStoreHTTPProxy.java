@@ -25,6 +25,7 @@ import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.utils.BookStoreConstants;
 import com.acertainbookstore.utils.BookStoreException;
 import com.acertainbookstore.utils.BookStoreMessageTag;
+import com.acertainbookstore.utils.BookStoreProxyUtility;
 import com.acertainbookstore.utils.BookStoreResult;
 import com.acertainbookstore.utils.BookStoreUtility;
 
@@ -39,7 +40,9 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 	private HttpClient client;
 	private List<String> slaveAddresses;
 	private String masterAddress;
-	private String filePath = "/universe/pcsd/acertainbookstore/src/proxy.properties";
+	//Kick somebodys ass for this
+	//private String filePath = "/universe/pcsd/acertainbookstore/src/proxy.properties";
+	private String filePath = null;
 	private volatile long snapshotId = 0;
 	private int masterPoints = 0;
 	private int baton = 0;
@@ -82,25 +85,9 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 
 	private void initializeReplicationAwareMappings() throws IOException {
 
-		Properties props = new Properties();
-		slaveAddresses = new ArrayList<String>();
+		this.masterAddress = BookStoreProxyUtility.getMasterAddress();
 
-		props.load(new FileInputStream(filePath));
-		this.masterAddress = props
-				.getProperty(BookStoreConstants.KEY_MASTER);
-		if (!this.masterAddress.toLowerCase().startsWith("http://")) {
-			this.masterAddress = new String("http://" + this.masterAddress);
-		}
-
-		String slaveAddresses = props
-				.getProperty(BookStoreConstants.KEY_SLAVE);
-		for (String slave : slaveAddresses
-				.split(BookStoreConstants.SPLIT_SLAVE_REGEX)) {
-			if (!slave.toLowerCase().startsWith("http://")) {
-				slave = new String("http://" + slave);
-			}
-			this.slaveAddresses.add(slave);
-		}
+		this.slaveAddresses = BookStoreProxyUtility.getSlaveAddresses();
 	}
 
 	public String getReplicaAddress() {

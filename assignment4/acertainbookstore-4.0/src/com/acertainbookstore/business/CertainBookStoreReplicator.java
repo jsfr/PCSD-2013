@@ -18,7 +18,6 @@ public class CertainBookStoreReplicator implements Replicator {
 	ExecutorService exec;
 	
 	public CertainBookStoreReplicator(int maxReplicatorThreads) {
-		// TODO:Implement this constructor
 		exec = Executors.newFixedThreadPool(maxReplicatorThreads);
 	}
 
