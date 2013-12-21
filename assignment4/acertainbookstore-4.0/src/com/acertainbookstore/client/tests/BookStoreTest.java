@@ -2,9 +2,12 @@ package com.acertainbookstore.client.tests;
 
 import static org.junit.Assert.*;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -19,7 +22,10 @@ import com.acertainbookstore.client.ReplicationAwareBookStoreHTTPProxy;
 import com.acertainbookstore.client.ReplicationAwareStockManagerHTTPProxy;
 import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.interfaces.StockManager;
+import com.acertainbookstore.server.MasterBookStoreHTTPServer;
+import com.acertainbookstore.server.SlaveBookStoreHTTPServer;
 import com.acertainbookstore.utils.BookStoreException;
+import com.acertainbookstore.utils.BookStoreProxyUtility;
 
 /**
  * Test class to test the BookStore interface
@@ -29,10 +35,50 @@ public class BookStoreTest {
 
 	private static StockManager storeManager;
 	private static BookStore client;
-
+	private static Thread[] threads;
+	
+	public static class SlaveServerFoo implements Runnable {
+		String port;
+		
+		SlaveServerFoo(String port) {
+			this.port = port;
+		}
+		
+		@Override
+		public void run() {
+			String[] args = {port};
+			SlaveBookStoreHTTPServer.main(args);
+		}
+		
+	}
+	
 	@BeforeClass
 	public static void setUpBeforeClass() {
+		
 		try {
+			List<String> slavePorts = BookStoreProxyUtility.getSlaveAddressPorts();
+			threads = new Thread[slavePorts.size()+1];
+			int i = 1;
+			Runnable master = new Runnable() {
+
+				@Override
+				public void run() {
+					String[] args = {};
+					MasterBookStoreHTTPServer.main(args);
+				}
+			};
+			
+			threads[0] = new Thread(master);
+			threads[0].start();
+			
+			for(String port : slavePorts) {
+				Runnable r = new BookStoreTest.SlaveServerFoo(port);
+				threads[i] = new Thread(r);	
+				threads[i].start();
+			}
+			
+			
+			//Thread.sleep(10000);	
 			storeManager = new ReplicationAwareStockManagerHTTPProxy();
 			client = new ReplicationAwareBookStoreHTTPProxy();
 		} catch (Exception e) {

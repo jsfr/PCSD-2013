@@ -45,5 +45,15 @@ public abstract class BookStoreProxyUtility {
 		return retval;
 	}
 
+	public static List<String> getSlaveAddressPorts() throws FileNotFoundException, IOException {
+		List<String> slaveAddresses = BookStoreProxyUtility.getSlaveAddresses();
+		List<String> ports = new ArrayList<String>();
+		for(String slave : slaveAddresses) {
+			int idx = slave.lastIndexOf(":");
+			String port = slave.substring(idx+1);
+			ports.add(port);
+		}
+		return ports;
+	}
 	
 }
