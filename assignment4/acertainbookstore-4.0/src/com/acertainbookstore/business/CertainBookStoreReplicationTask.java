@@ -61,8 +61,12 @@ public class CertainBookStoreReplicationTask implements
 		Buffer requestContent = new ByteArrayBuffer(dataSetXmlString);
 
 		ContentExchange exchange = new ContentExchange();
-		String urlString = this.server + "/"
+		String urlString = this.server
 				+ request.getMessageType();
+		
+		
+		System.out.println("Foo:" + urlString);
+		
 		exchange.setMethod("POST");
 		exchange.setURL(urlString);
 		exchange.setRequestContent(requestContent);
@@ -70,7 +74,6 @@ public class CertainBookStoreReplicationTask implements
 		
 		try {
 			BookStoreUtility.SendAndRecv(this.client, exchange);
-
 		} catch (BookStoreException e) {
 			retval.setReplicationSuccessful(false);
 		}
