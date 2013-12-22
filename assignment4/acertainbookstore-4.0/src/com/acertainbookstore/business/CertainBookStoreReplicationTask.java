@@ -65,8 +65,6 @@ public class CertainBookStoreReplicationTask implements
 				+ request.getMessageType();
 		
 		
-		System.out.println("Foo:" + urlString);
-		
 		exchange.setMethod("POST");
 		exchange.setURL(urlString);
 		exchange.setRequestContent(requestContent);

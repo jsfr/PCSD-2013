@@ -49,9 +49,11 @@ public class CertainBookStore implements BookStore, StockManager {
 	public synchronized void addBooks(Set<StockBook> bookSet)
 			throws BookStoreException {
 
+	    System.out.println("addBooks 1");
 		if (bookSet == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
+		System.out.println("addBooks 2:" + bookSet);
 		// Check if all are there
 		for (StockBook book : bookSet) {
 			int ISBN = book.getISBN();
@@ -64,18 +66,22 @@ public class CertainBookStore implements BookStore, StockManager {
 					|| BookStoreUtility.isEmpty(bookAuthor)
 					|| BookStoreUtility.isInvalidNoCopies(noCopies)
 					|| bookPrice < 0.0) {
+			    System.out.println("addBooks 2.5");
 				throw new BookStoreException(BookStoreConstants.BOOK
 						+ book.toString() + BookStoreConstants.INVALID);
 			} else if (bookMap.containsKey(ISBN)) {
+			    System.out.println("addBooks 2.51");
 				throw new BookStoreException(BookStoreConstants.ISBN + ISBN
 						+ BookStoreConstants.DUPLICATED);
 			}
 		}
+		System.out.println("addBooks 3");
 
 		for (StockBook book : bookSet) {
 			int ISBN = book.getISBN();
 			bookMap.put(ISBN, new BookStoreBook(book));
 		}
+		System.out.println("addBooks 4");
 		return;
 	}
 

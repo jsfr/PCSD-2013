@@ -113,7 +113,7 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 	}
 
 	public void addBooks(Set<StockBook> bookSet) throws BookStoreException {
-
+	    System.out.println("addBooks");
 		String listBooksxmlString = BookStoreUtility
 				.serializeObjectToXMLString(bookSet);
 		Buffer requestContent = new ByteArrayBuffer(listBooksxmlString);
@@ -133,7 +133,7 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 
 	public void addCopies(Set<BookCopy> bookCopiesSet)
 			throws BookStoreException {
-
+	    System.out.println("addCopies");
 		String listBookCopiesxmlString = BookStoreUtility
 				.serializeObjectToXMLString(bookCopiesSet);
 		Buffer requestContent = new ByteArrayBuffer(listBookCopiesxmlString);
@@ -152,7 +152,7 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 
 	@SuppressWarnings("unchecked")
 	public List<StockBook> getBooks() throws BookStoreException {
-
+	    System.out.println("getBooks");
 		BookStoreResult result = null;
 		do {
 			ContentExchange exchange = new ContentExchange();
@@ -161,14 +161,17 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 
 			exchange.setURL(urlString);
 			result = BookStoreUtility.SendAndRecv(this.client, exchange);
+//	        System.out.println("This.snapshotid:" + Double.toString(this.snapshotId));
+//	        System.out.println("result.snapshotid:" + Double.toString(result.getSnapshotId()));
 		} while (result.getSnapshotId() < this.getSnapshotId());
+		System.out.println("out of loop");
 		this.setSnapshotId(result.getSnapshotId());
 		return (List<StockBook>) result.getResultList();
 	}
 
 	public void updateEditorPicks(Set<BookEditorPick> editorPicksValues)
 			throws BookStoreException {
-
+	    System.out.println("updateEditorPicks");
 		String xmlStringEditorPicksValues = BookStoreUtility
 				.serializeObjectToXMLString(editorPicksValues);
 		Buffer requestContent = new ByteArrayBuffer(xmlStringEditorPicksValues);

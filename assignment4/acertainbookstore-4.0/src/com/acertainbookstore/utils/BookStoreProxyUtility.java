@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Properties;
 
 public abstract class BookStoreProxyUtility {
-	private static String filePath = "/Users/rel/Private/PCSD-2013/assignment4/acertainbookstore-4.0/src/proxy.properties";
+	private static String filePath = "/home/jens/repos/pcsd2013/assignment4/acertainbookstore-4.0/src/proxy.properties";
 	
 	
 	public static String getMasterAddress() throws FileNotFoundException, IOException {

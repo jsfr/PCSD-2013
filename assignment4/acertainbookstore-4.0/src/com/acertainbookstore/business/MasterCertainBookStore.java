@@ -35,7 +35,7 @@ public class MasterCertainBookStore implements ReplicatedBookStore,
 	private Set<String> slaveServers;
 	private static int maxReplicatorThreads = 10;
 	//Somebody should get shot for this.
-	private static String filePath = "/Users/rel/Private/PCSD-2013/assignment4/acertainbookstore-4.0/src/server.properties"; //"/universe/pcsd/acertainbookstore/src/server.properties";
+	private static String filePath = "/home/jens/repos/pcsd2013/assignment4/acertainbookstore-4.0/src/server.properties"; //"/universe/pcsd/acertainbookstore/src/server.properties";
 
 	private MasterCertainBookStore() throws Exception {
 		bookStore = CertainBookStore.getInstance();

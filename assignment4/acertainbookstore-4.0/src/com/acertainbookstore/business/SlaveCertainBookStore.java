@@ -66,8 +66,10 @@ public class SlaveCertainBookStore implements ReplicatedReadOnlyBookStore,
 	
 	public synchronized void addBooks(Set<StockBook> bookSet)
             throws BookStoreException {
+	    System.out.println("addCopies in slave");
 	    bookStore.addBooks(bookSet); // If this fails it will throw an exception
         snapshotId++;
+        System.out.println("this" + snapshotId);
 	    return;
     }
 	
