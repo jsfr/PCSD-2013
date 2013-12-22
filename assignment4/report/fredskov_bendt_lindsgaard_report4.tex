@@ -71,13 +71,28 @@ On the server side the API contains the method \texttt{push}. When a client send
 \section{Implementation} % (fold)
 \label{sec:implementation}
 
-\paragraph{NOTES} % (fold)
-\label{par:notes}
-
-The load balancing is done independently on both proxies, meaning that they might end up counteracting each other.
-
-% paragraph notes (end)
 
 % section implementation (end)
+
+\section{Questions for Discussion on the Replication mechanism}
+
+\paragraph{1.}
+The load balancing is done by a round robin strategy, meaning that each proxy takes turn on handling read requests (including the master). The master server is special as only the master can recieve writes. To make it a fair balancing, the master is skipped on read requests for each write request it has recieved, meaning that it will do only as many reads as writes it has already done. This could seem unfair as each successful write is propagated to each proxy afterwards, but the alternative would be to make the master equal to the proxies, but then the master would recieve a greater workload than the proxies (as errorness write calls are not propagated). Thus we chose to put a lesser rather than a greater work load on the master (as the master is most important to keep alive).
+The load balancing is done independently on both proxies, meaning that they might end up counteracting each other (as they don't share balancing seed). This design was given by the assignment and we have not changed it.
+
+Latency is hidden by making all writes propagate asynchronous to the proxies and by distributing the workload over the proxies. However this also means that a proxy can contain outdated data, so a read can be forced to be made multiple times to get the correct (latest) \texttt{snapshotId}.
+
+The assumption on fail-stop is, that if a proxy returns an error on any write or does not return at all (timeout or other connectivity problems), the proxy is dead and should be removed.
+
+\paragraph{2.}
+The advantage is that the system can handle many more reads than with only one server, even though the overhead can now be greater (if the \texttt{snapshotId} is outdated for the result). This also means that the proxies (and results of reads on the proxies) are not guaranteed to be correct (i.e. current), but it is guaranteed that they eventually become correct.
+
+The bottleneck is now that writes are not handled faster than before (actually a bit slower than before). This is because all successful writes must propagate to all proxies. And even though this is done asynchronously, the master server must handle all of the writes, just as before. 
+
+\paragraph{3.}
+It gets the \texttt{snapshotId} from each call to a server (proxy or not) to know whether a result is outdated or not. Also, for each call, the client can recieve results from different proxies, meaning that this could not only happen on a fail of a proxy, but simply between calls. If a call is outdated, it should just make another, which might return a newer result. %TODO: This might not be good enough?
+
+\paragraph{4.}
+This would mean that this subset of proxies would return outdated results forever. However, as the \texttt{snapshotId} is not updated on these proxies, as they never recieves writes, it should be easy to catch on the client side. Thus it would result in more calls to proxies, but at some point, if the client keeps calling, it should recieve correct answers. Thus this would only increase latency though.
 
 \end{document}
