@@ -74,6 +74,7 @@ Both of these problems can be remedied if the server is replicated in some way. 
 
 The tests largely copy the assignment 1 tests, meaning that they test that the clients see the same, unchanged semantics as before.
 
+We do not test other properties of the setup than functionality (that it works for basic operations). We do not test for balance load nor for fail-stop property. This is hard to test and is also something between testing and mesuring (as you mesure the degree of workload distribution).
 The tests do not in itself test for a failing proxy/server by killing any of these (as they have to be started in separate VMs).
 
 % section tests (end)
