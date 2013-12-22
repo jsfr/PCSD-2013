@@ -52,9 +52,11 @@ To utilize RPC for an asynchronous, persistent communication protocol we would u
 
 On the client side the API contains the methods \texttt{push} and \texttt{pull}. When a client comes online it immediately performs a pull-request to the server with its unique ID (could be a username, MAC address, etc.). If no messages are present the server returns ok, otherwise it returns all outstanding messages. When a client needs to communicate either a request or a response to another client it does so by sending it to the server with the \texttt{push} method.
 
-On the server side the API contains the method \texttt{push}. When a client sends a message the server immediately returns ok (to avoid blocking). It then tries to send the message, using \texttt{push} to the receiver. If the receiver is not present, the message is stored on the server until the receiver it self issues a \texttt{pull}.
+On the server side the API contains the method \texttt{push}. When a client sends a message the server immediately returns ok (to avoid blocking). It then tries to send the message, using \texttt{push} to the receiver. If the receiver is not present, the message is stored on the server until the receiver itself issues a \texttt{pull}.
 
-%TODO: limitations! important stuff
+Of course this solution has some potentially rather serious limitations. As the solution relies on a central server, it has a single point of failure. Further more if many users try to send requests the server, we need to make sure that these can be queued in a buffer, otherwise clients might end of waiting for the ok, breaking with the idea of immediate return.
+
+Both of these problems can be remedied if the server is replicated in some way. This could e.g. be using a master and slaves scheme.
 
 % section communication_abstractions (end)
 
@@ -62,22 +64,25 @@ On the server side the API contains the method \texttt{push}. When a client send
 \label{sec:reliability}
 
 \begin{enumerate}
-    \item The probability of the daisy chain connecting all buildings is the same as the probability of all links working which is $(1-p)^N$ where $N$ is the number of links.
-    \item If we have $N+1$ buildings, we must have $\sum_{k=0}^N k = N(N-1) \over 2$ links. 
+    \item The probability of the daisy chain connecting all buildings is the same as the probability of all links working which is $(1-p)^2$.
+    \item When the buildings are connected using three links, we need at least two links to fail before the buildings no longer are connected. Thus there are 4 out of 8 possible scenarios which results in a fully-connected network. If $U$ means that that the link is up and $D$ means that the link is down then the following results in a fully-connected network: $\{DUU, UDU, UUD, UUU\}$, whereas the following result in a partitioned network: $\{DDD, DDU, DUD, UDD\}$. Thus the probability of all the buildings being fully-connected is the sum of the probability for the first set: $3 \cdot (p \cdot (1-p)^2) + (1-p)^3$
+    \item As $(1-0.000001)^2 > 3 \cdot (0.001 \cdot (1-0.001)^2) + (1-0.001)^3$, the town council should in this case choose the daisy chain with the high-reliability links.
 \end{enumerate}
 
-% section reliability (end)
+\section{Tests} % (fold)
+\label{sec:tests}
 
-\section{Implementation} % (fold)
-\label{sec:implementation}
+The tests largely copy the assignment 1 tests, meaning that they test that the clients see the same, unchanged semantics as before.
 
+The tests do not in itself test for a failing proxy/server by killing any of these (as they have to be started in separate VMs).
 
-% section implementation (end)
+% section tests (end)
 
-\section{Questions for Discussion on the Replication mechanism}
+\section{Questions for Discussion on the Replication mechanism} % (fold)
+\label{sec:questions_for_discussion_on_the_replication_mechanism}
 
 \paragraph{1.}
-The load balancing is done by a round robin strategy, meaning that each proxy takes turn on handling read requests (including the master). The master server is special as only the master can recieve writes. To make it a fair balancing, the master is skipped on read requests for each write request it has recieved, meaning that it will do only as many reads as writes it has already done. This could seem unfair as each successful write is propagated to each proxy afterwards, but the alternative would be to make the master equal to the proxies, but then the master would recieve a greater workload than the proxies (as errorness write calls are not propagated). Thus we chose to put a lesser rather than a greater work load on the master (as the master is most important to keep alive).
+The load balancing is done by a round robin strategy, meaning that each proxy takes turn on handling read requests (including the master). The master server is special as only the master can receive writes. To make it a fair balancing, the master is skipped on read requests for each write request it has received, meaning that it will do only as many reads as writes it has already done. This could seem unfair as each successful write is propagated to each proxy afterwards, but the alternative would be to make the master equal to the proxies, but then the master would receive a greater workload than the proxies (as erroneousness write calls are not propagated). Thus we chose to put a lesser rather than a greater work load on the master (as the master is most important to keep alive).
 The load balancing is done independently on both proxies, meaning that they might end up counteracting each other (as they don't share balancing seed). This design was given by the assignment and we have not changed it.
 
 Latency is hidden by making all writes propagate asynchronous to the proxies and by distributing the workload over the proxies. However this also means that a proxy can contain outdated data, so a read can be forced to be made multiple times to get the correct (latest) \texttt{snapshotId}.
@@ -90,9 +95,10 @@ The advantage is that the system can handle many more reads than with only one s
 The bottleneck is now that writes are not handled faster than before (actually a bit slower than before). This is because all successful writes must propagate to all proxies. And even though this is done asynchronously, the master server must handle all of the writes, just as before. 
 
 \paragraph{3.}
-It gets the \texttt{snapshotId} from each call to a server (proxy or not) to know whether a result is outdated or not. Also, for each call, the client can recieve results from different proxies, meaning that this could not only happen on a fail of a proxy, but simply between calls. If a call is outdated, it should just make another, which might return a newer result. %TODO: This might not be good enough?
+It gets the \texttt{snapshotId} from each call to a server (proxy or not) to know whether a result is outdated or not. Also, for each call, the client can receive results from different proxies, meaning that this could not only happen on a fail of a proxy, but simply between calls. If a call is outdated, it should just make another, which might return a newer result. 
 
 \paragraph{4.}
-This would mean that this subset of proxies would return outdated results forever. However, as the \texttt{snapshotId} is not updated on these proxies, as they never recieves writes, it should be easy to catch on the client side. Thus it would result in more calls to proxies, but at some point, if the client keeps calling, it should recieve correct answers. Thus this would only increase latency though.
+This would mean that this subset of proxies would return outdated results forever. However, as the \texttt{snapshotId} is not updated on these proxies, as they never receives writes, it should be easy to catch on the client side. Thus it would result in more calls to proxies, but at some point, if the client keeps calling, it should receive correct answers. Thus this would only increase latency though.
 
+% section questions_for_discussion_on_the_replication_mechanism (end)
 \end{document}
